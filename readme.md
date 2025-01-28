@@ -12,7 +12,7 @@ SolidJS
 
 ### createDocumentProjection
 
-Get a fine-grained live view of a handle's document. It's subscribed to the
+get a fine-grained live view of a handle's document. It's subscribed to the
 handle's changes, and converts incoming automerge operations to solid store
 updates, providing fine-grained reactivity that's consistent across space and
 time.
@@ -34,7 +34,7 @@ return <h1>{doc.items[1].title}</h1>
 
 ### useDocumentStore
 
-Get a fine-grained live-view, change function and handle for an Automerge URL.
+get a fine-grained live-view, change function and handle for an Automerge URL.
 Everything you need.
 
 ```ts
