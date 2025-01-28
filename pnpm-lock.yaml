@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@solid-primitives/utils':
+        specifier: ^6.3.0
+        version: 6.3.0(solid-js@1.8.22)
       cabbages:
         specifier: ^0.1.0
         version: 0.1.0
@@ -544,6 +547,11 @@ packages:
 
   '@rushstack/ts-command-line@4.22.3':
     resolution: {integrity: sha512-edMpWB3QhFFZ4KtSzS8WNjBgR4PXPPOVrOHMbb7kNpmQ1UFS9HdVtjCXg1H5fG+xYAbeE+TMPcVPUyX2p84STA==}
+
+  '@solid-primitives/utils@6.3.0':
+    resolution: {integrity: sha512-e7hTlJ1Ywh2+g/Qug+n4L1mpfxsikoIS4/sHE2EK9WatQt8UJqop/vE6bsLnXlU1xuhb/jo94Ah5Y27rd4wP7A==}
+    peerDependencies:
+      solid-js: ^1.6.12
 
   '@solidjs/testing-library@0.8.9':
     resolution: {integrity: sha512-gcjTSHwzXqy8roTrDgHTasRkrUcWjVm/7T7wjUI5WNm2BdUTTi296CorTiIGQVFZg2BVYuwtJOzzNn71Y/QQfg==}
@@ -2438,6 +2446,10 @@ snapshots:
       string-argv: 0.3.2
     transitivePeerDependencies:
       - '@types/node'
+
+  '@solid-primitives/utils@6.3.0(solid-js@1.8.22)':
+    dependencies:
+      solid-js: 1.8.22
 
   '@solidjs/testing-library@0.8.9(solid-js@1.8.22)':
     dependencies:

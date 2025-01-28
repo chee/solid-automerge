@@ -1,8 +1,18 @@
-import {PeerId, Repo, type AutomergeUrl} from "@automerge/automerge-repo"
+import {
+	PeerId,
+	Repo,
+	type AutomergeUrl,
+	type DocHandle,
+} from "@automerge/automerge-repo"
 import {renderHook, testEffect} from "@solidjs/testing-library"
 import {describe, expect, it, vi} from "vitest"
 import {RepoContext} from "../../src/use/repo.ts"
-import {createEffect, createSignal, type ParentComponent} from "solid-js"
+import {
+	createEffect,
+	createSignal,
+	type Accessor,
+	type ParentComponent,
+} from "solid-js"
 import {useHandle} from "../../src/use/handle.ts"
 import {createDocumentProjection} from "../../src/create/document-projection.ts"
 
@@ -98,6 +108,42 @@ describe("createDocumentProjection", () => {
 		return done
 	})
 
+	it("should work with a signal url", async () => {
+		const {create, wrapper} = setup()
+		const [url, setURL] = createSignal<AutomergeUrl>(create().url)
+		const {result: handle} = renderHook(useHandle<ExampleDoc>, {
+			initialProps: [url],
+			wrapper,
+		})
+		const {result: doc, owner} = renderHook(
+			createDocumentProjection<ExampleDoc>,
+			{
+				initialProps: [handle as Accessor<DocHandle<ExampleDoc>>],
+				wrapper,
+			}
+		)
+		const done = testEffect(done => {
+			createEffect((run: number = 0) => {
+				if (run == 0) {
+					expect(doc.key).toBe("value")
+					handle()?.change(doc => (doc.key = "hello world!"))
+				} else if (run == 1) {
+					expect(doc.key).toBe("hello world!")
+					setURL(create().url)
+				} else if (run == 2) {
+					expect(doc.key).toBe("value")
+					handle()?.change(doc => (doc.key = "friday night!"))
+				} else if (run == 3) {
+					expect(doc.key).toBe("friday night!")
+					done()
+				}
+
+				return run + 1
+			})
+		}, owner!)
+		return done
+	})
+
 	it("should work with a slow handle", async () => {
 		const {create} = setup()
 		const handleSlow = create()
@@ -124,7 +170,7 @@ describe("createDocumentProjection", () => {
 		handleSlow.whenReady = () => delay.then(() => {})
 
 		const {result: doc, owner} = renderHook(createDocumentProjection, {
-			initialProps: [handleSlow],
+			initialProps: [() => handleSlow],
 		})
 		const done = testEffect(done => {
 			createEffect((run: number = 0) => {
@@ -145,7 +191,7 @@ describe("createDocumentProjection", () => {
 		let fn = vi.fn()
 
 		const {result: doc, owner} = renderHook(createDocumentProjection, {
-			initialProps: [handle],
+			initialProps: [() => handle],
 		})
 		testEffect(() => {
 			createEffect(() => {
