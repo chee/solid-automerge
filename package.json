@@ -18,6 +18,26 @@
 	],
 	"author": "chee <chee@rabbits.computer>",
 	"license": "MIT",
+	"exports": {
+		".": {
+			"import": "./out/index.js"
+		},
+		"./projection": {
+			"import": "./out/create-document-projection.js"
+		},
+		"./store": {
+			"import": "./out/use-document-store.js"
+		},
+		"./use-repo": {
+			"import": "./out/use-repo.js"
+		},
+		"./use-handle": {
+			"import": "./out/use-handle.js"
+		},
+		"./use-document": {
+			"import": "./out/use-document.js"
+		}
+	},
 	"devDependencies": {
 		"@automerge/automerge": "^2.2.8",
 		"@automerge/automerge-repo": "2.0.0-alpha.11",
