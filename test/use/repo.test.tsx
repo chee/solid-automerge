@@ -1,7 +1,7 @@
 import {Repo} from "@automerge/automerge-repo"
 import {render} from "@solidjs/testing-library"
 import {describe, expect, test, vi} from "vitest"
-import {RepoContext, useRepo} from "../src/repo.ts"
+import {RepoContext, useRepo} from "../../src/use/repo.ts"
 import type {ParentComponent} from "solid-js"
 
 describe("useRepo", () => {
@@ -24,9 +24,7 @@ describe("useRepo", () => {
 	test("should return repo from context", () => {
 		const repo = new Repo()
 		const wrapper: ParentComponent = props => (
-			<RepoContext.Provider value={repo}>
-				{props.children}
-			</RepoContext.Provider>
+			<RepoContext.Provider value={repo}>{props.children}</RepoContext.Provider>
 		)
 		const onRepo = vi.fn()
 		render(() => <Component onRepo={onRepo} />, {wrapper})

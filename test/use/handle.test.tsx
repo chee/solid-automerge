@@ -6,8 +6,8 @@ import {
 } from "@automerge/automerge-repo"
 import {render, renderHook, waitFor} from "@solidjs/testing-library"
 import {afterEach, describe, expect, it, vi} from "vitest"
-import {useHandle} from "../src/handle.ts"
-import {RepoContext} from "../src/repo.ts"
+import {useHandle} from "../../src/use/handle.ts"
+import {RepoContext} from "../../src/use/repo.ts"
 import {
 	createEffect,
 	createSignal,
@@ -16,7 +16,7 @@ import {
 	untrack,
 	type ParentComponent,
 } from "solid-js"
-import type {BaseOptions} from "../src/types.ts"
+import type {BaseOptions} from "../../src/types.ts"
 
 interface ExampleDoc {
 	foo: string

@@ -6,6 +6,9 @@ import {visualizer} from "rollup-plugin-visualizer"
 import solid from "vite-plugin-solid"
 
 export default defineConfig({
+	test: {
+		testTimeout: 1000,
+	},
 	plugins: [
 		solid(),
 		wasm(),

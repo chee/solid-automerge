@@ -1,8 +1,8 @@
 import {AutomergeUrl, PeerId, Repo} from "@automerge/automerge-repo"
 import {render, waitFor} from "@solidjs/testing-library"
 import {describe, expect, it, vi} from "vitest"
-import {useDocument} from "../src/document.ts"
-import {RepoContext} from "../src/repo.ts"
+import {useDocument} from "../../src/use/document.ts"
+import {RepoContext} from "../../src/use/repo.ts"
 import {
 	createEffect,
 	createSignal,
@@ -10,9 +10,9 @@ import {
 	untrack,
 	type ParentComponent,
 } from "solid-js"
-import type {BaseOptions} from "../src/types.ts"
+import type {BaseOptions} from "../../src/types.ts"
 
-const SLOW_DOC_LOAD_TIME_MS = 1
+const SLOW_DOC_LOAD_TIME_MS = 30
 
 describe("useDocument", () => {
 	function setup() {
@@ -204,7 +204,7 @@ describe("useDocument", () => {
 		await waitFor(() => expect(onDoc).toHaveBeenLastCalledWith({foo: "A"}))
 
 		// wait for the slow doc to finish loading...
-		await pause(SLOW_DOC_LOAD_TIME_MS * 2)
+		await pause(SLOW_DOC_LOAD_TIME_MS + 1)
 
 		// we didn't update the doc to the slow doc, so it should still be A
 		expect(onDoc).not.toHaveBeenCalledWith({foo: "slow"})

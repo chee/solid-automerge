@@ -12,50 +12,57 @@ import {
 	createResource,
 	on,
 	onCleanup,
-	type Resource,
+	type Accessor,
 } from "solid-js"
-import type {BaseOptions} from "./types.ts"
+import type {BaseOptions} from "../types.ts"
 
 /**
  * Get a {@link Doc} from an AutomergeURL.
  */
 export function useDocument<T>(
-	id: () => AnyDocumentId | undefined,
+	url: Accessor<AnyDocumentId | undefined>,
 	options?: BaseOptions
-): [
-	Resource<Doc<T> | undefined>,
-	(changeFn: ChangeFn<T>, options?: ChangeOptions<T> | undefined) => void,
-] {
-	let handle = useHandle<T>(id, options)
-	let [doc, {refetch, mutate}] = createResource<
+) {
+	const handle = useHandle<T>(url, options)
+
+	const [doc, {refetch, mutate}] = createResource<
 		Doc<T | undefined>,
 		DocHandle<T>
-	>(handle, handle => handle.doc(), {
-		initialValue: handle()?.docSync(),
-	})
+	>(
+		() => handle(),
+		handle => handle.doc(),
+		{
+			name: handle()?.url,
+			initialValue: handle()?.docSync(),
+		}
+	)
 
 	function ondelete() {
 		mutate()
-		refetch()
 	}
 
 	createEffect(
 		on(handle, handle => {
-			handle?.on("change", refetch)
-			handle?.on("delete", ondelete)
+			if (!handle) return
+			handle.on("change", refetch)
+			handle.on("delete", ondelete)
 			onCleanup(() => {
-				handle?.off("change", refetch)
-				handle?.off("delete", ondelete)
+				handle.off("change", refetch)
+				handle.off("delete", ondelete)
 			})
 		})
 	)
 
-	createEffect(on(id, id => id || mutate()))
+	createEffect(() => {
+		if (!url()) {
+			mutate()
+		}
+	})
 
 	return [
 		doc,
 		(fn: ChangeFn<T>, options?: ChangeOptions<T>) => {
 			handle()?.change(fn, options)
 		},
-	]
+	] as const
 }
