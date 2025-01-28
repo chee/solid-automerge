@@ -7,7 +7,7 @@ const readyStates = ["ready", "deleted", "unavailable"] as HandleState[]
 const badStates = ["deleted", "unavailable"] as HandleState[]
 
 /**
- * Get a {@link DocHandle} from an AutomergeURL.
+ * get a `DocHandle` from an `AutomergeUrl`
  */
 export function useHandle<T>(
 	url: Accessor<AnyDocumentId | undefined>,

@@ -17,7 +17,10 @@ import {
 import type {BaseOptions} from "./types.ts"
 
 /**
- * Get a {@link Doc} from an AutomergeURL.
+ * get a `Doc` from an `AutomergeURL`.
+ * @param url the `AutomergeUrl` for your doc (or an Accessor that might return
+ * it)
+ * @param options you can pass a repo in here
  */
 export function useDocument<T>(
 	url: Accessor<AnyDocumentId | undefined>,

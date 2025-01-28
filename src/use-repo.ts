@@ -2,12 +2,13 @@ import {Repo} from "@automerge/automerge-repo/slim"
 import {createContext, useContext} from "solid-js"
 
 /**
- * A [context](https://docs.solidjs.com/concepts/context) that provides access
- * to an Automerge repo.
+ * a [context](https://docs.solidjs.com/concepts/context) that provides access
+ * to an Automerge repo. you don't need this, you can pass the repo in the
+ * second arg
  */
 export const RepoContext = createContext<Repo | null>(null)
 
-/** A utility function to access the repo owned by {@link RepoContext}. */
+/** grab the repo from the {@link RepoContext} */
 export function useRepo(): Repo {
 	const repo = useContext(RepoContext)
 	if (!repo) throw new Error("Please wrap me in a <RepoContext value={repo}>")

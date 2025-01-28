@@ -8,6 +8,14 @@ import {autoproduce} from "./autoproduce.ts"
 import {createStore} from "solid-js/store"
 import {access, type MaybeAccessor} from "@solid-primitives/utils"
 
+/**
+ * get a fine-grained live view of a handle's document. it's subscribed to the
+   handle's changes, and converts incoming automerge operations to solid store
+   updates, providing **fine-grained reactivity that's consistent across space
+   and time**.
+ * @param handle a handle, or a function that returns a handle, or a function
+ * that might return a handle one day 
+ */
 export function createDocumentProjection<T>(
 	handle: MaybeAccessor<DocHandle<T>>
 ) {
