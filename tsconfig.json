@@ -21,6 +21,6 @@
 		"src/**/*.ts",
 		"test/**/*.tsx",
 		"_workshop/**/*.tsx",
-		"test/store/document-store.test.tsx"
+		"test/use-document-store.test.tsx"
 	]
 }

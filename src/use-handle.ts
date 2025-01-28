@@ -1,7 +1,7 @@
 import type {AnyDocumentId, HandleState} from "@automerge/automerge-repo/slim"
-import {RepoContext} from "./repo.ts"
+import {RepoContext} from "./use-repo.ts"
 import {createEffect, createResource, useContext, type Accessor} from "solid-js"
-import type {BaseOptions} from "../types.ts"
+import type {BaseOptions} from "./types.ts"
 
 const readyStates = ["ready", "deleted", "unavailable"] as HandleState[]
 const badStates = ["deleted", "unavailable"] as HandleState[]

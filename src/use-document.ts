@@ -6,7 +6,7 @@ import type {
 } from "@automerge/automerge-repo/slim"
 import type {ChangeOptions} from "@automerge/automerge/slim/next"
 
-import {useHandle} from "./handle.ts"
+import {useHandle} from "./use-handle.ts"
 import {
 	createEffect,
 	createResource,
@@ -14,7 +14,7 @@ import {
 	onCleanup,
 	type Accessor,
 } from "solid-js"
-import type {BaseOptions} from "../types.ts"
+import type {BaseOptions} from "./types.ts"
 
 /**
  * Get a {@link Doc} from an AutomergeURL.

@@ -1,8 +1,8 @@
 import {PeerId, Repo, type AutomergeUrl} from "@automerge/automerge-repo"
 import {renderHook, testEffect} from "@solidjs/testing-library"
 import {describe, expect, it, vi} from "vitest"
-import {useDocumentStore} from "../../src/use/document-store.ts"
-import {RepoContext} from "../../src/use/repo.ts"
+import {useDocumentStore} from "../src/use-document-store.ts"
+import {RepoContext} from "../src/use-repo.ts"
 import {createEffect, createSignal, type ParentComponent} from "solid-js"
 
 describe("useDocumentStore", () => {
@@ -120,6 +120,8 @@ describe("useDocumentStore", () => {
 					setURL(create().url)
 				} else if (run == 4) {
 					expect(doc?.key).toBe("value")
+					change(doc => (doc.key = "computed!"))
+					expect(doc?.key).toBe("computed!")
 					done()
 				}
 

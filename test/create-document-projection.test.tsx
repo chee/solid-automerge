@@ -6,15 +6,15 @@ import {
 } from "@automerge/automerge-repo"
 import {renderHook, testEffect} from "@solidjs/testing-library"
 import {describe, expect, it, vi} from "vitest"
-import {RepoContext} from "../../src/use/repo.ts"
+import {RepoContext} from "../src/use-repo.ts"
 import {
 	createEffect,
 	createSignal,
 	type Accessor,
 	type ParentComponent,
 } from "solid-js"
-import {useHandle} from "../../src/use/handle.ts"
-import {createDocumentProjection} from "../../src/create/document-projection.ts"
+import {useHandle} from "../src/use-handle.ts"
+import {createDocumentProjection} from "../src/create-document-projection.ts"
 
 describe("createDocumentProjection", () => {
 	function setup() {
