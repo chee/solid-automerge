@@ -1,5 +1,5 @@
 import {createMemo, useContext} from "solid-js"
-import type {AnyDocumentId, ChangeFn} from "@automerge/automerge-repo"
+import type {AnyDocumentId, ChangeFn, Doc} from "@automerge/automerge-repo"
 import type {BaseOptions} from "./types.ts"
 import {RepoContext} from "./use-repo.ts"
 import {createDocumentProjection} from "./create-document-projection.ts"
@@ -19,8 +19,8 @@ export function useDocumentStore<T>(
 	const repo = (options?.repo || contextRepo)!
 	const handle = createMemo(() => repo.find<T>(access(url)))
 
-	const projection = () => createDocumentProjection(handle)
-	const [doc] = createStore(projection())
+	const projection = () => createDocumentProjection<T>(handle)
+	const [doc] = createStore<Doc<T>>(projection())
 
 	return [
 		doc,
