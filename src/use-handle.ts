@@ -1,7 +1,8 @@
 import type {AnyDocumentId, HandleState} from "@automerge/automerge-repo/slim"
-import {RepoContext} from "./use-repo.ts"
-import {createEffect, createResource, useContext, type Accessor} from "solid-js"
-import type {BaseOptions} from "./types.ts"
+import {createEffect, createResource, useContext} from "solid-js"
+import {access, type MaybeAccessor} from "@solid-primitives/utils"
+import {RepoContext} from "./use-repo.js"
+import type {BaseOptions} from "./types.js"
 
 const readyStates = ["ready", "deleted", "unavailable"] as HandleState[]
 const badStates = ["deleted", "unavailable"] as HandleState[]
@@ -10,7 +11,7 @@ const badStates = ["deleted", "unavailable"] as HandleState[]
  * get a `DocHandle` from an `AutomergeUrl`
  */
 export function useHandle<T>(
-	url: Accessor<AnyDocumentId | undefined>,
+	url: MaybeAccessor<AnyDocumentId | undefined>,
 	options?: BaseOptions
 ) {
 	const contextRepo = useContext(RepoContext)
@@ -30,6 +31,7 @@ export function useHandle<T>(
 		} else if (handle.inState(badStates)) {
 			return reject(handle.state)
 		}
+
 		return handle.whenReady(readyStates).then(() => {
 			if (handle.isReady()) {
 				return handle
@@ -39,7 +41,7 @@ export function useHandle<T>(
 	})
 
 	createEffect(() => {
-		if (!url()) {
+		if (!access(url)) {
 			mutate()
 		}
 	})

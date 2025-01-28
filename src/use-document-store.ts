@@ -1,8 +1,8 @@
 import {createMemo, useContext} from "solid-js"
 import type {AnyDocumentId, ChangeFn, Doc} from "@automerge/automerge-repo"
-import type {BaseOptions} from "./types.ts"
-import {RepoContext} from "./use-repo.ts"
-import {createDocumentProjection} from "./create-document-projection.ts"
+import type {BaseOptions} from "./types.js"
+import {RepoContext} from "./use-repo.js"
+import {createDocumentProjection} from "./create-document-projection.js"
 import {access, type MaybeAccessor} from "@solid-primitives/utils"
 import {createStore} from "solid-js/store"
 
@@ -15,7 +15,7 @@ import {createStore} from "solid-js/store"
  * @returns 
  */
 export function useDocumentStore<T>(
-	url: MaybeAccessor<AnyDocumentId>,
+	url: MaybeAccessor<AnyDocumentId | undefined>,
 	options?: BaseOptions
 ) {
 	const contextRepo = useContext(RepoContext)
@@ -25,7 +25,7 @@ export function useDocumentStore<T>(
 	}
 
 	const repo = (options?.repo || contextRepo)!
-	const handle = createMemo(() => repo.find<T>(access(url)))
+	const handle = createMemo(() => access(url) && repo.find<T>(access(url)!))
 
 	const projection = () => createDocumentProjection<T>(handle)
 	const [doc] = createStore<Doc<T>>(projection())
@@ -33,7 +33,7 @@ export function useDocumentStore<T>(
 	return [
 		doc,
 		// eslint-disable-next-line solid/reactivity
-		(change: ChangeFn<T>) => handle().change(change),
+		(change: ChangeFn<T>) => handle()?.change(change),
 		handle,
 	] as const
 }

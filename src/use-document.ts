@@ -6,15 +6,10 @@ import type {
 } from "@automerge/automerge-repo/slim"
 import type {ChangeOptions} from "@automerge/automerge/slim/next"
 
-import {useHandle} from "./use-handle.ts"
-import {
-	createEffect,
-	createResource,
-	on,
-	onCleanup,
-	type Accessor,
-} from "solid-js"
-import type {BaseOptions} from "./types.ts"
+import {useHandle} from "./use-handle.js"
+import {createEffect, createResource, on, onCleanup} from "solid-js"
+import type {BaseOptions} from "./types.js"
+import {access, type MaybeAccessor} from "@solid-primitives/utils"
 
 /**
  * get a `Doc` from an `AutomergeURL`.
@@ -23,7 +18,7 @@ import type {BaseOptions} from "./types.ts"
  * @param options you can pass a repo in here
  */
 export function useDocument<T>(
-	url: Accessor<AnyDocumentId | undefined>,
+	url: MaybeAccessor<AnyDocumentId | undefined>,
 	options?: BaseOptions
 ) {
 	const handle = useHandle<T>(url, options)
@@ -57,7 +52,7 @@ export function useDocument<T>(
 	)
 
 	createEffect(() => {
-		if (!url()) {
+		if (!access(url)) {
 			mutate()
 		}
 	})

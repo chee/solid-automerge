@@ -1,11 +1,11 @@
-import {createComputed, onCleanup} from "solid-js"
+import {createComputed, createEffect, onCleanup} from "solid-js"
 import type {
 	Doc,
 	DocHandle,
 	DocHandleChangePayload,
 } from "@automerge/automerge-repo"
-import {autoproduce} from "./autoproduce.ts"
-import {createStore} from "solid-js/store"
+import {autoproduce} from "./autoproduce.js"
+import {createStore, reconcile} from "solid-js/store"
 import {access, type MaybeAccessor} from "@solid-primitives/utils"
 
 /**
@@ -17,9 +17,9 @@ import {access, type MaybeAccessor} from "@solid-primitives/utils"
  * that might return a handle one day 
  */
 export function createDocumentProjection<T>(
-	handle: MaybeAccessor<DocHandle<T>>
+	handle: MaybeAccessor<DocHandle<T> | undefined>
 ) {
-	const [doc, set] = createStore<Doc<T>>(access(handle).docSync() as T)
+	const [doc, set] = createStore<Doc<T>>(access(handle)?.docSync() as T)
 
 	function patch(payload: DocHandleChangePayload<T>) {
 		set(autoproduce(payload.patches))
@@ -33,7 +33,10 @@ export function createDocumentProjection<T>(
 			h.whenReady().then(() => {
 				set(h.docSync() as T)
 			})
-			onCleanup(() => h.off("change", patch))
+			onCleanup(() => {
+				h.off("change", patch)
+				set(reconcile({} as T))
+			})
 		}
 	})
 
