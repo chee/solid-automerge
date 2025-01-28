@@ -1,7 +1,9 @@
 {
 	"$schema": "https://typedoc.org/schema.json",
 	"includeVersion": true,
-	"excludePrivate": true
+	"excludePrivate": true,
 	"entryPoints": ["src/index.ts"],
-	"readme": "none"
+	"plugin": ["typedoc-material-theme"],
+	"themeColor": "#ff2a50",
+	"name": "automerge repo solid primitives"
 }

@@ -6,10 +6,9 @@
 	"main": "output/index.js",
 	"scripts": {
 		"prepublish": "pnpm mk",
-		"mk": "tsc --noEmit && vite build",
+		"mk": "tsc -p tsconfig.build.json && typedoc",
 		"test": "vitest run",
-		"w": "npm-watch build",
-		"viz": "VISUALIZE=true vite build"
+		"w": "pnpm mk --watch"
 	},
 	"keywords": [
 		"solidjs",
@@ -32,12 +31,12 @@
 		"prettier": "^3.3.3",
 		"rollup-plugin-visualizer": "^5.12.0",
 		"solid-js": "^1.8.22",
+		"typedoc": "^0.27.6",
+		"typedoc-material-theme": "^1.3.0",
 		"typescript": "^5.6.2",
 		"typescript-eslint": "^8.6.0",
-		"vite": "^5.4.7",
-		"vite-plugin-dts": "4.0.0-beta.2",
-		"vite-plugin-solid": "^2.10.2",
-		"vite-plugin-wasm": "^3.3.0",
+		"vite-plugin-solid": "^2.11.0",
+		"vite-plugin-wasm": "^3.4.1",
 		"vitest": "^2.1.1"
 	},
 	"peerDependencies": {
