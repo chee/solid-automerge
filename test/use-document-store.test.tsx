@@ -190,7 +190,7 @@ describe("useDocumentStore", () => {
 		})
 		testEffect(() => {
 			createEffect(() => {
-				fn(doc?.projects[1].title)
+				fn(doc.projects[1].title)
 			})
 		})
 		const arrayDotThree = testEffect(done => {

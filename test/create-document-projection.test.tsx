@@ -52,9 +52,12 @@ describe("createDocumentProjection", () => {
 
 	it("should notify on a property change", async () => {
 		const {handle} = setup()
-		const {result: doc, owner} = renderHook(createDocumentProjection, {
-			initialProps: [handle],
-		})
+		const {result: doc, owner} = renderHook(
+			createDocumentProjection<ExampleDoc>,
+			{
+				initialProps: [handle],
+			}
+		)
 
 		const done = testEffect(done => {
 			createEffect((run: number = 0) => {
@@ -84,9 +87,12 @@ describe("createDocumentProjection", () => {
 			initialProps: [() => url],
 			wrapper,
 		})
-		const {result: doc, owner} = renderHook(createDocumentProjection, {
-			initialProps: [handle()!],
-		})
+		const {result: doc, owner} = renderHook(
+			createDocumentProjection<ExampleDoc>,
+			{
+				initialProps: [handle()!],
+			}
+		)
 
 		const done = testEffect(done => {
 			createEffect((run: number = 0) => {
@@ -169,9 +175,12 @@ describe("createDocumentProjection", () => {
 		handleSlow.isReady = () => loaded
 		handleSlow.whenReady = () => delay.then(() => {})
 
-		const {result: doc, owner} = renderHook(createDocumentProjection, {
-			initialProps: [() => handleSlow],
-		})
+		const {result: doc, owner} = renderHook(
+			createDocumentProjection<ExampleDoc>,
+			{
+				initialProps: [() => handleSlow],
+			}
+		)
 		const done = testEffect(done => {
 			createEffect((run: number = 0) => {
 				if (run == 0) {
@@ -190,9 +199,12 @@ describe("createDocumentProjection", () => {
 		const {handle} = setup()
 		let fn = vi.fn()
 
-		const {result: doc, owner} = renderHook(createDocumentProjection, {
-			initialProps: [() => handle],
-		})
+		const {result: doc, owner} = renderHook(
+			createDocumentProjection<ExampleDoc>,
+			{
+				initialProps: [() => handle],
+			}
+		)
 		testEffect(() => {
 			createEffect(() => {
 				fn(doc?.projects[1].title)
