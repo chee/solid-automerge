@@ -4,3 +4,6 @@ _workshop/
 vite.demo.config.ts
 stats.html
 node_modules/
+docs/
+out/
+*.tsbuildinfo
