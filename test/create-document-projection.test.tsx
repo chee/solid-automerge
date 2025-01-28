@@ -6,15 +6,15 @@ import {
 } from "@automerge/automerge-repo"
 import {renderHook, testEffect} from "@solidjs/testing-library"
 import {describe, expect, it, vi} from "vitest"
-import {RepoContext} from "../src/use-repo.ts"
+import {RepoContext} from "../src/use-repo.js"
 import {
 	createEffect,
 	createSignal,
 	type Accessor,
 	type ParentComponent,
 } from "solid-js"
-import {useHandle} from "../src/use-handle.ts"
-import {createDocumentProjection} from "../src/create-document-projection.ts"
+import {useHandle} from "../src/use-handle.js"
+import {createDocumentProjection} from "../src/create-document-projection.js"
 
 describe("createDocumentProjection", () => {
 	function setup() {
@@ -79,30 +79,36 @@ describe("createDocumentProjection", () => {
 
 	it("should work with useHandle", async () => {
 		const {
-			handle: {url},
+			handle: {url: startingUrl},
 			wrapper,
 		} = setup()
 
+		const [url, setURL] = createSignal<AutomergeUrl>()
+
 		const {result: handle} = renderHook(useHandle<ExampleDoc>, {
-			initialProps: [() => url],
+			initialProps: [url],
 			wrapper,
 		})
+
 		const {result: doc, owner} = renderHook(
 			createDocumentProjection<ExampleDoc>,
 			{
-				initialProps: [handle()!],
+				initialProps: [handle],
 			}
 		)
 
 		const done = testEffect(done => {
 			createEffect((run: number = 0) => {
 				if (run == 0) {
+					expect(doc?.key).toBe(undefined)
+					setURL(startingUrl)
+				} else if (run == 1) {
 					expect(doc?.key).toBe("value")
 					handle()?.change(doc => (doc.key = "hello world!"))
-				} else if (run == 1) {
+				} else if (run == 2) {
 					expect(doc?.key).toBe("hello world!")
 					handle()?.change(doc => (doc.key = "friday night!"))
-				} else if (run == 2) {
+				} else if (run == 3) {
 					expect(doc?.key).toBe("friday night!")
 					done()
 				}
@@ -116,7 +122,7 @@ describe("createDocumentProjection", () => {
 
 	it("should work with a signal url", async () => {
 		const {create, wrapper} = setup()
-		const [url, setURL] = createSignal<AutomergeUrl>(create().url)
+		const [url, setURL] = createSignal<AutomergeUrl>()
 		const {result: handle} = renderHook(useHandle<ExampleDoc>, {
 			initialProps: [url],
 			wrapper,
@@ -131,16 +137,52 @@ describe("createDocumentProjection", () => {
 		const done = testEffect(done => {
 			createEffect((run: number = 0) => {
 				if (run == 0) {
+					expect(doc.key).toBe(undefined)
+					setURL(create().url)
+				} else if (run == 1) {
 					expect(doc.key).toBe("value")
 					handle()?.change(doc => (doc.key = "hello world!"))
-				} else if (run == 1) {
+				} else if (run == 2) {
 					expect(doc.key).toBe("hello world!")
 					setURL(create().url)
-				} else if (run == 2) {
+				} else if (run == 3) {
 					expect(doc.key).toBe("value")
 					handle()?.change(doc => (doc.key = "friday night!"))
-				} else if (run == 3) {
+				} else if (run == 4) {
 					expect(doc.key).toBe("friday night!")
+					done()
+				}
+
+				return run + 1
+			})
+		}, owner!)
+		return done
+	})
+
+	it("should clear the store when the signal returns to nothing", async () => {
+		const {create, wrapper} = setup()
+		const [url, setURL] = createSignal<AutomergeUrl>()
+		const {result: handle} = renderHook(useHandle<ExampleDoc>, {
+			initialProps: [url],
+			wrapper,
+		})
+		const {result: doc, owner} = renderHook(
+			createDocumentProjection<ExampleDoc>,
+			{
+				initialProps: [handle as Accessor<DocHandle<ExampleDoc>>],
+				wrapper,
+			}
+		)
+		const done = testEffect(done => {
+			createEffect((run: number = 0) => {
+				if (run == 0) {
+					expect(doc.key).toBe(undefined)
+					setURL(create().url)
+				} else if (run == 1) {
+					expect(doc.key).toBe("value")
+					setURL(undefined)
+				} else if (run == 2) {
+					expect(doc.key).toBe(undefined)
 					done()
 				}
 

@@ -1,8 +1,8 @@
 import {AutomergeUrl, PeerId, Repo} from "@automerge/automerge-repo"
 import {render, waitFor} from "@solidjs/testing-library"
 import {describe, expect, it, vi} from "vitest"
-import {useDocument} from "../src/use-document.ts"
-import {RepoContext} from "../src/use-repo.ts"
+import {useDocument} from "../src/use-document.js"
+import {RepoContext} from "../src/use-repo.js"
 import {
 	createEffect,
 	createSignal,
@@ -10,7 +10,7 @@ import {
 	untrack,
 	type ParentComponent,
 } from "solid-js"
-import type {BaseOptions} from "../src/types.ts"
+import type {BaseOptions} from "../src/types.js"
 
 const SLOW_DOC_LOAD_TIME_MS = 30
 

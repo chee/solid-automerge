@@ -1,9 +1,9 @@
 import {PeerId, Repo, type AutomergeUrl} from "@automerge/automerge-repo"
 import {renderHook, testEffect} from "@solidjs/testing-library"
 import {describe, expect, it, vi} from "vitest"
-import {useDocumentStore} from "../src/use-document-store.ts"
-import {RepoContext} from "../src/use-repo.ts"
 import {createEffect, createSignal, type ParentComponent} from "solid-js"
+import {useDocumentStore} from "../src/use-document-store.js"
+import {RepoContext} from "../src/use-repo.js"
 
 describe("useDocumentStore", () => {
 	function setup() {
@@ -95,8 +95,8 @@ describe("useDocumentStore", () => {
 	})
 
 	it("should work with a signal url", async () => {
-		const {create, repo, url: startingUrl} = setup()
-		const [url, setURL] = createSignal<AutomergeUrl>(startingUrl)
+		const {create, repo} = setup()
+		const [url, setURL] = createSignal<AutomergeUrl>()
 
 		const {
 			result: [doc, change],
@@ -107,13 +107,13 @@ describe("useDocumentStore", () => {
 		const done = testEffect(done => {
 			createEffect((run: number = 0) => {
 				if (run == 0) {
+					expect(doc?.key).toBe(undefined)
+					setURL(create().url)
+				} else if (run == 1) {
 					expect(doc?.key).toBe("value")
 					change(doc => (doc.key = "hello world!"))
-				} else if (run == 1) {
-					expect(doc?.key).toBe("hello world!")
-					setURL(create().url)
 				} else if (run == 2) {
-					expect(doc?.key).toBe("value")
+					expect(doc?.key).toBe("hello world!")
 					change(doc => (doc.key = "friday night!"))
 				} else if (run == 3) {
 					expect(doc?.key).toBe("friday night!")
