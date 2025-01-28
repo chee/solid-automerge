@@ -183,6 +183,9 @@ describe("createDocumentProjection", () => {
 					setURL(undefined)
 				} else if (run == 2) {
 					expect(doc.key).toBe(undefined)
+					setURL(create().url)
+				} else if (run == 3) {
+					expect(doc.key).toBe("value")
 					done()
 				}
 

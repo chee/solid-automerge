@@ -21,7 +21,7 @@ export function useHandle<T>(
 	}
 	const repo = (options?.repo || contextRepo)!
 
-	const [handle, {mutate}] = createResource(url, function (url) {
+	const [handle, {mutate, refetch}] = createResource(url, function (url) {
 		const handle = repo.find<T>(url)
 		const reject = (state: HandleState) =>
 			Promise.reject(new Error(`document not available: [${state}]`))

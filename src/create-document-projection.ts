@@ -1,4 +1,4 @@
-import {createComputed, createEffect, onCleanup} from "solid-js"
+import {createComputed, onCleanup} from "solid-js"
 import type {
 	Doc,
 	DocHandle,
@@ -35,8 +35,9 @@ export function createDocumentProjection<T>(
 			})
 			onCleanup(() => {
 				h.off("change", patch)
-				set(reconcile({} as T))
 			})
+		} else {
+			set(reconcile({} as T))
 		}
 	})
 
