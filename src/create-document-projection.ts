@@ -19,22 +19,25 @@ import {access, type MaybeAccessor} from "@solid-primitives/utils"
 export function createDocumentProjection<T>(
 	handle: MaybeAccessor<DocHandle<T> | undefined>
 ) {
-	const [doc, set] = createStore<Doc<T>>(access(handle)?.docSync() as T)
+	const [doc, set] = createStore<Doc<T>>(
+		structuredClone(access(handle)?.docSync() as T)
+	)
 
 	function patch(payload: DocHandleChangePayload<T>) {
 		set(autoproduce(payload.patches))
 	}
 
 	createComputed(() => {
-		const h = access(handle)
-		if (h) {
-			set(h.docSync() as T)
-			h.on("change", patch)
-			h.whenReady().then(() => {
-				set(h.docSync() as T)
-			})
+		const unwrappedHandle = access(handle)
+		if (unwrappedHandle) {
+			set(structuredClone(unwrappedHandle.docSync() as T))
+
+			unwrappedHandle.on("change", patch)
 			onCleanup(() => {
-				h.off("change", patch)
+				unwrappedHandle.off("change", patch)
+			})
+			unwrappedHandle.whenReady().then(() => {
+				set(structuredClone(unwrappedHandle.docSync() as T))
 			})
 		} else {
 			set(reconcile({} as T))

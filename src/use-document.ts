@@ -28,10 +28,10 @@ export function useDocument<T>(
 		DocHandle<T>
 	>(
 		() => handle(),
-		handle => handle.doc(),
+		handle => handle.doc().then(structuredClone),
 		{
 			name: handle()?.url,
-			initialValue: handle()?.docSync(),
+			initialValue: structuredClone(handle()?.docSync()),
 		}
 	)
 
