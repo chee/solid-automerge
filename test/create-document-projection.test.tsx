@@ -104,7 +104,7 @@ describe("createDocumentProjection", () => {
 				}
 				return run + 1
 			})
-		}, owner1!)
+		}, owner2!)
 
 		const done1 = testEffect(done => {
 			createEffect((run: number = 0) => {
