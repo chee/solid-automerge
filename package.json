@@ -8,7 +8,7 @@
 		"prepublish": "pnpm mk",
 		"mk": "tsc -p tsconfig.build.json && typedoc",
 		"test": "vitest run",
-		"w": "pnpm mk --watch"
+		"w": "tsc -p tsconfig.build.json --watch"
 	},
 	"keywords": [
 		"solidjs",
