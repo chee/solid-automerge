@@ -1,6 +1,6 @@
-import { PeerId, Repo, type AutomergeUrl } from "@automerge/automerge-repo"
-import { renderHook, testEffect } from "@solidjs/testing-library"
-import { createEffect, createSignal, type ParentComponent } from "solid-js"
+import { PeerId, Repo, type AutomergeUrl, type DocHandle } from "@automerge/automerge-repo"
+import { render, renderHook, testEffect } from "@solidjs/testing-library"
+import { createEffect, createSignal, type Accessor, type ParentComponent } from "solid-js"
 import { describe, expect, it, vi } from "vitest"
 import { createDocumentProjection } from "../src/create-document-projection.js"
 import { useHandle } from "../src/use-handle.js"
@@ -209,6 +209,45 @@ describe("useDocumentProjection", () => {
       })
     }, owner!)
     return done
+  })
+
+  it("should not return the wrong store when handle changes", async () => {
+    const { create } = setup()
+
+    const h1 = create()
+    const h2 = create()
+
+    const [currentHandle, setCurrentHandle] = createSignal(h1)
+
+    const result = render(() => {
+      function Component(props: { handle: Accessor<DocHandle<ExampleDoc>> }) {
+        // eslint-disable-next-line solid/reactivity
+        const doc = createDocumentProjection(props.handle)
+        return <div data-testid="key">{doc.key}</div>
+      }
+
+      return <Component handle={currentHandle} />
+    })
+
+    expect(result.getByTestId("key").textContent).toBe("value")
+    await testEffect(done => {
+      h1.change(doc => (doc.key = "hello"))
+      done()
+    })
+
+    expect(result.getByTestId("key").textContent).toBe("hello")
+    await testEffect(done => {
+      setCurrentHandle(() => h2)
+      done()
+    })
+
+    expect(result.getByTestId("key").textContent).toBe("value")
+    await testEffect(done => {
+      setCurrentHandle(() => h1)
+      done()
+    })
+
+    expect(result.getByTestId("key").textContent).toBe("hello")
   })
 
   it("should work with a slow handle", async () => {
