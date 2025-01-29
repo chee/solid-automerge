@@ -2,7 +2,7 @@ import { PeerId, Repo, type AutomergeUrl } from "@automerge/automerge-repo"
 import { renderHook, testEffect } from "@solidjs/testing-library"
 import { createEffect, createSignal, type ParentComponent } from "solid-js"
 import { describe, expect, it, vi } from "vitest"
-import { useDocumentProjection } from "../src/create-document-projection.js"
+import { createDocumentProjection } from "../src/create-document-projection.js"
 import { useHandle } from "../src/use-handle.js"
 import { RepoContext } from "../src/use-repo.js"
 
@@ -38,7 +38,7 @@ describe("useDocumentProjection", () => {
 
   it("should notify on a property change", async () => {
     const { handle } = setup()
-    const { result: doc, owner } = renderHook(useDocumentProjection, {
+    const { result: doc, owner } = renderHook(createDocumentProjection, {
       initialProps: [handle],
     })
 
@@ -62,10 +62,10 @@ describe("useDocumentProjection", () => {
 
   it("should not apply patches multiple times just because there are multiple projections", async () => {
     const { handle } = setup()
-    const { result: one, owner: owner1 } = renderHook(useDocumentProjection, {
+    const { result: one, owner: owner1 } = renderHook(createDocumentProjection, {
       initialProps: [handle],
     })
-    const { result: two, owner: owner2 } = renderHook(useDocumentProjection, {
+    const { result: two, owner: owner2 } = renderHook(createDocumentProjection, {
       initialProps: [handle],
     })
 
@@ -115,7 +115,7 @@ describe("useDocumentProjection", () => {
       wrapper,
     })
 
-    const { result: doc, owner } = renderHook(useDocumentProjection, {
+    const { result: doc, owner } = renderHook(createDocumentProjection, {
       initialProps: [handle],
     })
 
@@ -149,7 +149,7 @@ describe("useDocumentProjection", () => {
       initialProps: [url],
       wrapper,
     })
-    const { result: doc, owner } = renderHook(useDocumentProjection, {
+    const { result: doc, owner } = renderHook(createDocumentProjection, {
       initialProps: [handle],
       wrapper,
     })
@@ -185,7 +185,7 @@ describe("useDocumentProjection", () => {
       initialProps: [url],
       wrapper,
     })
-    const { result: doc, owner } = renderHook(useDocumentProjection, {
+    const { result: doc, owner } = renderHook(createDocumentProjection, {
       initialProps: [handle],
       wrapper,
     })
@@ -236,7 +236,7 @@ describe("useDocumentProjection", () => {
     handleSlow.isReady = () => loaded
     handleSlow.whenReady = () => delay.then(() => {})
 
-    const { result: doc, owner } = renderHook(useDocumentProjection, {
+    const { result: doc, owner } = renderHook(createDocumentProjection, {
       initialProps: [() => handleSlow],
     })
     const done = testEffect(done => {
@@ -257,7 +257,7 @@ describe("useDocumentProjection", () => {
     const { handle } = setup()
     let fn = vi.fn()
 
-    const { result: doc, owner } = renderHook(useDocumentProjection, {
+    const { result: doc, owner } = renderHook(createDocumentProjection, {
       initialProps: [() => handle],
     })
     testEffect(() => {

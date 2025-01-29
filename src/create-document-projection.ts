@@ -8,9 +8,9 @@ const cache = new WeakMap<DocHandle<unknown>, Store<unknown>>()
 
 type DocFromHandle<T extends DocHandle<unknown>> = NonNullable<ReturnType<T["docSync"]>>
 
-export function createDocumentProjection<T>(handle: DocHandle<T>): T
-export function createDocumentProjection<T>(handle?: DocHandle<T>): T | undefined
-export function createDocumentProjection<T>(handle?: DocHandle<T>) {
+function documentProjection<T>(handle: DocHandle<T>): T
+function documentProjection<T>(handle?: DocHandle<T>): T | undefined
+function documentProjection<T>(handle?: DocHandle<T>) {
   if (!handle) return undefined
 
   if (cache.has(handle)) {
@@ -46,14 +46,14 @@ export function createDocumentProjection<T>(handle?: DocHandle<T>) {
  * @param maybeHandle a handle, or a function that returns a handle, or a function
  * that might return a handle one day 
  */
-export function useDocumentProjection<T extends MaybeAccessor<DocHandle<unknown> | undefined>>(
+export function createDocumentProjection<T extends MaybeAccessor<DocHandle<unknown> | undefined>>(
   maybeHandle: T,
 ) {
   if (typeof maybeHandle !== "function") {
-    return createDocumentProjection(access(maybeHandle)) as MaybeDocumentProjection<T>
+    return documentProjection(access(maybeHandle)) as MaybeDocumentProjection<T>
   }
   return createMemo(() => {
-    return createDocumentProjection(access(maybeHandle)) as MaybeDocumentProjection<T>
+    return documentProjection(access(maybeHandle)) as MaybeDocumentProjection<T>
   })
 }
 
