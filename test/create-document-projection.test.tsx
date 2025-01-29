@@ -77,6 +77,54 @@ describe("createDocumentProjection", () => {
 		return done
 	})
 
+	it("should not apply patches multiple times just because there are multiple projections", async () => {
+		const {handle} = setup()
+		const {result: one, owner: owner1} = renderHook(
+			createDocumentProjection<ExampleDoc>,
+			{
+				initialProps: [handle],
+			}
+		)
+		const {result: two, owner: owner2} = renderHook(
+			createDocumentProjection<ExampleDoc>,
+			{
+				initialProps: [handle],
+			}
+		)
+
+		const done2 = testEffect(done => {
+			createEffect((run: number = 0) => {
+				if (run == 0) {
+					expect(two.array).toEqual([1, 2, 3])
+				} else if (run == 1) {
+					expect(two.array).toEqual([1, 2, 3, 4])
+				} else if (run == 2) {
+					expect(two.array).toEqual([1, 2, 3, 4, 5])
+					done()
+				}
+				return run + 1
+			})
+		}, owner1!)
+
+		const done1 = testEffect(done => {
+			createEffect((run: number = 0) => {
+				if (run == 0) {
+					expect(one.array).toEqual([1, 2, 3])
+					handle.change(doc => doc.array.push(4))
+				} else if (run == 1) {
+					expect(one.array).toEqual([1, 2, 3, 4])
+					handle.change(doc => doc.array.push(5))
+				} else if (run == 2) {
+					expect(one.array).toEqual([1, 2, 3, 4, 5])
+					done()
+				}
+				return run + 1
+			})
+		}, owner1!)
+
+		return Promise.allSettled([done1, done2])
+	})
+
 	it("should work with useHandle", async () => {
 		const {
 			handle: {url: startingUrl},
