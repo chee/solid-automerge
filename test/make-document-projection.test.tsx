@@ -1,4 +1,4 @@
-import {PeerId, Repo, type Doc, type DocHandle} from "@automerge/automerge-repo"
+import {PeerId, Repo, type DocHandle} from "@automerge/automerge-repo"
 import {renderHook, testEffect} from "@solidjs/testing-library"
 import {describe, expect, it, vi} from "vitest"
 import {RepoContext} from "../src/use-repo.js"
