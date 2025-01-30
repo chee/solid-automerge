@@ -8,60 +8,81 @@ Automerge
 SolidJS
 </a>.
 
-## fine-grained
+## useDocument ✨
 
-### createDocumentProjection
+get a fine-grained live view of an automerge document from its URL.
 
-get a fine-grained live view of a handle's document. It's subscribed to the
-handle's changes, and converts incoming automerge operations to solid store
-updates, providing fine-grained reactivity that's consistent across space and
-time.
+when the handle receives changes, it converts the incoming automerge patch ops
+to precise solid store updates, giving you fine-grained reactivity that's
+consistent across space and time.
+
+returns `[doc, handle]`.
 
 ```ts
-createDocumentProjection<T>(
-    Handle<T> | () => Handle<T>
-): Doc<T>
+useDocument<T>(
+    () => AutomergeURL,
+    options?: {repo: Repo}
+): [Doc<T>, DocHandle<T>]
 ```
 
-#### e.g.
+```tsx
+// example
+const [url, setURL] = createSignal<AutomergeUrl>(props.url)
+const [doc, handle] = useDocument(url, {repo})
+
+const inc = () => handle()?.change(d => d.count++)
+return <button onclick={inc}>{doc()?.count}</button>
+```
+
+the `{repo}` option can be left out if you are using [RepoContext](#repocontext).
+
+## createDocumentProjection
+
+get a fine-grained live view from a signal automerge handle.
+
+underlying primitive for [`useDocument`](#usedocument-).
+
+works with [`useHandle`](#usehandle).
 
 ```ts
-let handle = repo.find(url)
-let doc = createDocumentProjection<{items: {title: string}[]}>(handle)
+createDocumentProjection<T>(() => AutomergeUrl): Doc<T>
+```
 
+```tsx
+// example
+let handle = repo.find(url)
+let doc = makeDeepDocumentProjection<{items: {title: string}[]}>(handle)
+
+// subscribes fine-grained to doc.items[1].title
 return <h1>{doc.items[1].title}</h1>
 ```
 
-### useDocumentStore
+## makeDocumentProjection
 
-get a fine-grained live-view, change function and handle for an Automerge URL.
-Everything you need.
+just like `useDocument`, but without a reactive input.
 
-```ts
-useDocumentStore<T>(
-    AutomergeUrl | () => AutomergeUrl
-): [Doc<T>, change, handle]
-```
-
-#### e.g.
+underlying primitive for [`createDocumentProjection`](#createdocumentprojection).
 
 ```ts
-let [doc, change, handle] = createDocumentStore<{text: string}>(handle)
-
-return (
-    <button onclick={() => change(doc => doc.text + "!")}>
-        {doc.text}
-    </button>
-)
+makeDeepDocumentProjection<T>(handle: Handle<T>): Doc<T>
 ```
 
-## loosey goosey
+```tsx
+// example
+let handle = repo.find(url)
+let doc = makeDeepDocumentProjection<{items: {title: string}[]}>(handle)
 
-### useHandle
+// subscribes fine-grained to doc.items[1].title
+return <h1>{doc.items[1].title}</h1>
+```
 
-Get a [handle](https://automerge.org/docs/repositories/dochandles/) from the
+## useHandle
+
+get a [handle](https://automerge.org/docs/repositories/dochandles/) from the
 repo as a
 [resource](https://docs.solidjs.com/reference/basic-reactivity/create-resource).
+
+perfect for handing to `createDocumentProjection`.
 
 ```ts
 useHandle<T>(
@@ -70,47 +91,23 @@ useHandle<T>(
 ): Resource<Handle<T>>
 ```
 
-#### e.g.
-
-```ts
-let handle = useHandle(id)
+```tsx
+const handle = useHandle(id, {repo})
 // or
-let handle = useHandle(id, {repo})
+const handle = useHandle(id)
 ```
 
-The `repo` option can be left out if you are using [RepoContext](#repocontext).
+the `repo` option can be left out if you are using [RepoContext](#repocontext).
 
-### useDocument
-
-Get a document and change function from the repo as a
-[resource](https://docs.solidjs.com/reference/basic-reactivity/create-resource).
-
-```ts
-useDocument<T>(
-    () => AnyDocumentId,
-    options?: {repo: Repo}
-): [Resource<T>, (fn: changeFn<T>) => void]
-```
-
-#### e.g.
-
-```ts
-let [doc, change] = useDocument(id)
-// or
-let [doc, change] = useDocument(id, {repo})
-```
-
-The `repo` option can be left out if you are using [RepoContext](#repocontext).
-
-## Context
+## context
 
 If you prefer the context pattern for some reason, you can pass the repo higher
-up in your app with <RepoContext/>
+up in your app with `RepoContext`
 
-### RepoContext
+### `RepoContext`
 
 A convenience context for Automerge-Repo Solid apps. Optional: if you prefer you
-can pass a repo as an option to `useHandle` or `useDocument`.
+can pass a repo as an option to `useHandle`.
 
 ```tsx
 <RepoContext.Provider repo={Repo}>
@@ -118,7 +115,7 @@ can pass a repo as an option to `useHandle` or `useDocument`.
 </RepoContext.Provider>
 ```
 
-### useRepo
+### `useRepo`
 
 Get the repo from the [context](#repocontext).
 
@@ -129,5 +126,5 @@ useRepo(): Repo
 #### e.g.
 
 ```ts
-let repo = useRepo()
+const repo = useRepo()
 ```
