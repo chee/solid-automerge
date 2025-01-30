@@ -1,18 +1,19 @@
-import {AutomergeUrl, PeerId, Repo} from "@automerge/automerge-repo"
-import {render, waitFor} from "@solidjs/testing-library"
+import {
+	PeerId,
+	Repo,
+	type AnyDocumentId,
+	type AutomergeUrl,
+} from "@automerge/automerge-repo"
+import {render, renderHook, testEffect} from "@solidjs/testing-library"
 import {describe, expect, it, vi} from "vitest"
-import {useDocument} from "../src/use-document.js"
 import {RepoContext} from "../src/use-repo.js"
 import {
 	createEffect,
 	createSignal,
-	on,
-	untrack,
+	type Accessor,
 	type ParentComponent,
 } from "solid-js"
-import type {BaseOptions} from "../src/types.js"
-
-const SLOW_DOC_LOAD_TIME_MS = 30
+import {useDocument} from "../src/use-document.js"
 
 describe("useDocument", () => {
 	function setup() {
@@ -20,21 +21,277 @@ describe("useDocument", () => {
 			peerId: "bob" as PeerId,
 		})
 
-		const handleA = repo.create<ExampleDoc>()
-		handleA.change(doc => (doc.foo = "A"))
+		const create = () =>
+			repo.create<ExampleDoc>({
+				key: "value",
+				array: [1, 2, 3],
+				hellos: [{hello: "world"}, {hello: "hedgehog"}],
+				projects: [
+					{title: "one", items: [{title: "go shopping"}]},
+					{title: "two", items: []},
+				],
+			})
 
-		const handleB = repo.create<ExampleDoc>()
-		handleB.change(doc => (doc.foo = "B"))
+		const handle = create()
+		const wrapper: ParentComponent = props => {
+			return (
+				<RepoContext.Provider value={repo}>
+					{props.children}
+				</RepoContext.Provider>
+			)
+		}
 
-		const handleSlow = repo.create<ExampleDoc>()
-		handleSlow.change(doc => (doc.foo = "slow"))
+		return {
+			repo,
+			handle,
+			wrapper,
+			create,
+			options: {repo},
+		}
+	}
+
+	it("should notify on a property change", async () => {
+		const {create, options} = setup()
+		const {
+			result: [doc, handle],
+			owner,
+		} = renderHook(useDocument<ExampleDoc>, {
+			initialProps: [create().url, options],
+		})
+
+		const done = testEffect(done => {
+			createEffect((run: number = 0) => {
+				if (run == 0) {
+					expect(doc()?.key).toBe("value")
+					handle()?.change(doc => (doc.key = "hello world!"))
+				} else if (run == 1) {
+					expect(doc()?.key).toBe("hello world!")
+					handle()?.change(doc => (doc.key = "friday night!"))
+				} else if (run == 2) {
+					expect(doc()?.key).toBe("friday night!")
+					done()
+				}
+				return run + 1
+			})
+		}, owner!)
+		return done
+	})
+
+	it("should not apply patches multiple times just because there are multiple projections", async () => {
+		const {
+			handle: {url},
+			options,
+		} = setup()
+
+		const {
+			result: [one, oneHandle],
+			owner: owner1,
+		} = renderHook(useDocument<ExampleDoc>, {
+			initialProps: [url, options],
+		})
+
+		const {
+			result: [two, twoHandle],
+			owner: owner2,
+		} = renderHook(useDocument<ExampleDoc>, {
+			initialProps: [url, options],
+		})
+
+		const done2 = testEffect(done => {
+			createEffect((run: number = 0) => {
+				if (run == 0) {
+					expect(two()?.array).toEqual([1, 2, 3])
+				} else if (run == 1) {
+					expect(two()?.array).toEqual([1, 2, 3, 4])
+				} else if (run == 2) {
+					expect(two()?.array).toEqual([1, 2, 3, 4, 5])
+					done()
+				}
+				return run + 1
+			})
+		}, owner2!)
+
+		const done1 = testEffect(done => {
+			createEffect((run: number = 0) => {
+				if (run == 0) {
+					expect(one()?.array).toEqual([1, 2, 3])
+					oneHandle()?.change(doc => doc.array.push(4))
+				} else if (run == 1) {
+					expect(one()?.array).toEqual([1, 2, 3, 4])
+					twoHandle()?.change(doc => doc.array.push(5))
+				} else if (run == 2) {
+					expect(one()?.array).toEqual([1, 2, 3, 4, 5])
+					done()
+				}
+				return run + 1
+			})
+		}, owner1!)
+
+		return Promise.allSettled([done1, done2])
+	})
+
+	it("should work with a signal url", async () => {
+		const {create, wrapper} = setup()
+		const [url, setURL] = createSignal<AutomergeUrl>()
+		const {
+			result: [doc, handle],
+			owner,
+		} = renderHook(useDocument<ExampleDoc>, {
+			initialProps: [url],
+			wrapper,
+		})
+		const done = testEffect(done => {
+			createEffect((run: number = 0) => {
+				if (run == 0) {
+					expect(doc()?.key).toBe(undefined)
+					setURL(create().url)
+				} else if (run == 1) {
+					expect(doc()?.key).toBe("value")
+					handle()?.change(doc => (doc.key = "hello world!"))
+				} else if (run == 2) {
+					expect(doc()?.key).toBe("hello world!")
+					setURL(create().url)
+				} else if (run == 3) {
+					expect(doc()?.key).toBe("value")
+					handle()?.change(doc => (doc.key = "friday night!"))
+				} else if (run == 4) {
+					expect(doc()?.key).toBe("friday night!")
+					done()
+				}
+
+				return run + 1
+			})
+		}, owner!)
+		return done
+	})
+
+	it("should clear the store when the url signal returns to nothing", async () => {
+		const {create, wrapper, options} = setup()
+		const [url, setURL] = createSignal<AutomergeUrl>()
+		const {
+			result: [doc, handle],
+			owner,
+		} = renderHook(useDocument<ExampleDoc>, {
+			initialProps: [url, options],
+			wrapper,
+		})
+
+		const done = testEffect(done => {
+			createEffect((run: number = 0) => {
+				if (run == 0) {
+					expect(doc()?.key).toBe(undefined)
+					expect(handle()).toBe(undefined)
+					setURL(create().url)
+				} else if (run == 1) {
+					expect(doc()?.key).toBe("value")
+					expect(handle()).not.toBe(undefined)
+					setURL(undefined)
+				} else if (run == 2) {
+					expect(doc()?.key).toBe(undefined)
+					expect(handle()).toBe(undefined)
+					setURL(create().url)
+				} else if (run == 3) {
+					expect(doc()?.key).toBe("value")
+					expect(handle()).not.toBe(undefined)
+					done()
+				}
+
+				return run + 1
+			})
+		}, owner!)
+		return done
+	})
+
+	it("should not return the wrong store when url changes", async () => {
+		const {create, repo} = setup()
+		const h1 = create()
+		const h2 = create()
+		const u1 = h1.url
+		const u2 = h2.url
+
+		const [stableURL] = createSignal(u1)
+		const [changingURL, setChangingURL] = createSignal(u1)
+
+		const result = render(() => {
+			function Component(props: {
+				stableURL: Accessor<AnyDocumentId>
+				changingURL: Accessor<AnyDocumentId>
+			}) {
+				const [stableDoc] = useDocument<ExampleDoc>(
+					// eslint-disable-next-line solid/reactivity
+					props.stableURL
+				)
+
+				const [changingDoc] = useDocument<ExampleDoc>(
+					// eslint-disable-next-line solid/reactivity
+					props.changingURL
+				)
+
+				return (
+					<>
+						<div data-testid="key-stable">{stableDoc()?.key}</div>
+						<div data-testid="key-changing">{changingDoc()?.key}</div>
+					</>
+				)
+			}
+
+			return (
+				<RepoContext.Provider value={repo}>
+					<Component stableURL={stableURL} changingURL={changingURL} />
+				</RepoContext.Provider>
+			)
+		})
+
+		h2.change(doc => (doc.key = "document-2"))
+		expect(result.getByTestId("key-stable").textContent).toBe("value")
+		expect(result.getByTestId("key-changing").textContent).toBe("value")
+
+		await testEffect(done => {
+			h1.change(doc => (doc.key = "hello"))
+			done()
+		})
+
+		expect(result.getByTestId("key-stable").textContent).toBe("hello")
+		expect(result.getByTestId("key-changing").textContent).toBe("hello")
+
+		await testEffect(done => {
+			setChangingURL(u2)
+			done()
+		})
+		expect(result.getByTestId("key-stable").textContent).toBe("hello")
+		expect(result.getByTestId("key-changing").textContent).toBe("document-2")
+
+		await testEffect(done => {
+			setChangingURL(u1)
+			done()
+		})
+		expect(result.getByTestId("key-stable").textContent).toBe("hello")
+		expect(result.getByTestId("key-changing").textContent).toBe("hello")
+
+		await testEffect(async done => {
+			setChangingURL(u2)
+			h2.change(doc => (doc.key = "world"))
+			done()
+		})
+
+		await testEffect(done => {
+			expect(result.getByTestId("key-stable").textContent).toBe("hello")
+			expect(result.getByTestId("key-changing").textContent).toBe("world")
+			done()
+		})
+	})
+
+	it("should work with a slow handle", async () => {
+		const {create, options} = setup()
+		const handleSlow = create()
+		handleSlow.change(doc => (doc.key = "slow"))
 		const oldDoc = handleSlow.doc.bind(handleSlow)
 		let loaded = false
-		const delay = new Promise(resolve =>
+		const delay = new Promise<boolean>(resolve =>
 			setTimeout(() => {
 				loaded = true
 				resolve(true)
-			}, SLOW_DOC_LOAD_TIME_MS)
+			}, 100)
 		)
 		handleSlow.doc = async () => {
 			await delay
@@ -46,173 +303,92 @@ describe("useDocument", () => {
 		handleSlow.docSync = () => {
 			return loaded ? oldDocSync() : undefined
 		}
+		handleSlow.isReady = () => loaded
+		handleSlow.whenReady = () => delay.then(() => {})
 
-		const wrapper: ParentComponent = props => {
-			return (
-				<RepoContext.Provider value={repo}>
-					{props.children}
-				</RepoContext.Provider>
-			)
-		}
-
-		return {
-			repo,
-			handleA,
-			handleB,
-			handleSlow,
-			wrapper,
-		}
-	}
-
-	const Component = (props: {
-		url: AutomergeUrl | undefined
-		onDoc: (doc: ExampleDoc) => void
-		options?: BaseOptions
-	}) => {
-		const [doc] = useDocument<ExampleDoc>(
-			() => props.url,
-			untrack(() => props.options)
-		)
-		createEffect(
-			on([doc], ([doc]) => {
-				props.onDoc(doc!)
+		const {
+			result: [doc],
+			owner,
+		} = renderHook(useDocument<ExampleDoc>, {
+			initialProps: [handleSlow.url, options],
+		})
+		const done = testEffect(done => {
+			createEffect((run: number = 0) => {
+				if (run == 0) {
+					expect(doc()?.key).toBe(undefined)
+				} else if (run == 1) {
+					expect(doc()?.key).toBe("slow")
+					done()
+				}
+				return run + 1
 			})
-		)
-		return null
-	}
-
-	it("should load a document", async () => {
-		const {handleA, wrapper} = setup()
-		const onDoc = vi.fn()
-
-		render(() => <Component url={handleA.url} onDoc={onDoc} />, {wrapper})
-		await waitFor(() => expect(onDoc).toHaveBeenLastCalledWith({foo: "A"}))
+		}, owner!)
+		return done
 	})
 
-	it("throws if called without any kinda repo", async () => {
-		const {handleA} = setup()
-		const onDoc = vi.fn()
+	it("should not notify on properties nobody cares about", async () => {
+		const {
+			handle: {url},
+			options,
+		} = setup()
+		let fn = vi.fn()
 
-		expect(() =>
-			render(() => <Component url={handleA.url} onDoc={onDoc} />, {})
-		).toThrowErrorMatchingInlineSnapshot(
-			`[Error: use outside <RepoContext> requires options.repo]`
-		)
-	})
-
-	it("works without a context if given a repo in options", async () => {
-		const {handleA, repo} = setup()
-		const onDoc = vi.fn()
-
-		render(
-			() => <Component url={handleA.url} onDoc={onDoc} options={{repo}} />,
-			{}
-		)
-		await waitFor(() => expect(onDoc).toHaveBeenLastCalledWith({foo: "A"}))
-	})
-
-	it("should immediately return a document if it has already been loaded", async () => {
-		const {handleA, wrapper} = setup()
-		const onDoc = vi.fn()
-
-		render(() => <Component url={handleA.url} onDoc={onDoc} />, {wrapper})
-		await waitFor(() => expect(onDoc).not.toHaveBeenCalledWith(undefined))
-	})
-
-	it("should update if the doc changes", async () => {
-		const {wrapper, handleA} = setup()
-		const onDoc = vi.fn()
-
-		render(() => <Component url={handleA.url} onDoc={onDoc} />, {wrapper})
-		await waitFor(() => expect(onDoc).toHaveBeenLastCalledWith({foo: "A"}))
-
-		handleA.change(doc => (doc.foo = "new value"))
-		await waitFor(() =>
-			expect(onDoc).toHaveBeenLastCalledWith({foo: "new value"})
-		)
-	})
-
-	it("should update if the doc is deleted", async () => {
-		const {wrapper, handleA} = setup()
-		const onDoc = vi.fn()
-
-		render(() => <Component url={handleA.url} onDoc={onDoc} />, {wrapper})
-		await waitFor(() => expect(onDoc).toHaveBeenLastCalledWith({foo: "A"}))
-
-		handleA.delete()
-		await waitFor(() => expect(onDoc).toHaveBeenLastCalledWith(undefined))
-	})
-
-	it("should update if the url changes", async () => {
-		const {handleA, handleB, wrapper} = setup()
-		const onDoc = vi.fn()
-		const [url, updateURL] = createSignal<AutomergeUrl | undefined>()
-
-		render(() => <Component url={url()} onDoc={onDoc} />, {
-			wrapper,
+		const {
+			result: [doc, handle],
+			owner,
+		} = renderHook(useDocument<ExampleDoc>, {
+			initialProps: [url, options],
 		})
-		await waitFor(() => expect(onDoc).toHaveBeenLastCalledWith(undefined))
-
-		// set url to doc A
-		updateURL(handleA.url)
-		await waitFor(() => expect(onDoc).toHaveBeenLastCalledWith({foo: "A"}))
-
-		// set url to doc B
-		updateURL(handleB.url)
-		await waitFor(() => expect(onDoc).toHaveBeenLastCalledWith({foo: "B"}))
-
-		// set url to undefined
-		updateURL(undefined)
-		await waitFor(() => expect(onDoc).toHaveBeenLastCalledWith(undefined))
-	})
-
-	it("sets the doc to undefined while the initial load is happening", async () => {
-		const {handleA, handleSlow, wrapper} = setup()
-		const onDoc = vi.fn()
-		const [url, updateURL] = createSignal<AutomergeUrl | undefined>()
-
-		render(() => <Component url={url()} onDoc={onDoc} />, {
-			wrapper,
+		testEffect(() => {
+			createEffect(() => {
+				fn(doc()?.projects[1].title)
+			})
 		})
-		await waitFor(() => expect(onDoc).toHaveBeenLastCalledWith(undefined))
+		const arrayDotThree = testEffect(done => {
+			createEffect((run: number = 0) => {
+				if (run == 0) {
+					expect(doc()?.array[3]).toBeUndefined()
+					handle()?.change(doc => (doc.array[2] = 22))
+					handle()?.change(doc => (doc.key = "hello world!"))
+					handle()?.change(doc => (doc.array[1] = 11))
+					handle()?.change(doc => (doc.array[3] = 145))
+				} else if (run == 1) {
+					expect(doc()?.array[3]).toBe(145)
+					handle()?.change(doc => (doc.projects[0].title = "hello world!"))
+					handle()?.change(
+						doc => (doc.projects[0].items[0].title = "hello world!")
+					)
+					handle()?.change(doc => (doc.array[3] = 147))
+				} else if (run == 2) {
+					expect(doc()?.array[3]).toBe(147)
+					done()
+				}
+				return run + 1
+			})
+		}, owner!)
+		const projectZeroItemZeroTitle = testEffect(done => {
+			createEffect((run: number = 0) => {
+				if (run == 0) {
+					expect(doc()?.projects[0].items[0].title).toBe("hello world!")
+					done()
+				}
+				return run + 1
+			})
+		}, owner!)
 
-		// start by setting url to doc A
-		updateURL(handleA.url)
-		await waitFor(() => expect(onDoc).toHaveBeenLastCalledWith({foo: "A"}))
+		expect(fn).toHaveBeenCalledOnce()
+		expect(fn).toHaveBeenCalledWith("two")
 
-		// Now we set the URL to a handle that's slow to load.
-		// The doc should be undefined while the load is happening.
-		updateURL(handleSlow.url)
-		await waitFor(() => expect(onDoc).toHaveBeenCalledWith(undefined))
-		await waitFor(() => expect(onDoc).toHaveBeenLastCalledWith({foo: "slow"}))
-	})
-
-	it("avoids showing stale data", async () => {
-		const {handleA, handleSlow, wrapper} = setup()
-		const onDoc = vi.fn()
-		const [url, updateURL] = createSignal<AutomergeUrl | undefined>()
-		render(() => <Component url={url()} onDoc={onDoc} />, {
-			wrapper,
-		})
-		await waitFor(() => expect(onDoc).toHaveBeenLastCalledWith(undefined))
-
-		// Set the URL to a slow doc and then a fast doc.
-		// We should see the fast doc forever, even after
-		// the slow doc has had time to finish loading.
-		updateURL(handleSlow.url)
-		updateURL(handleA.url)
-		await waitFor(() => expect(onDoc).toHaveBeenLastCalledWith({foo: "A"}))
-
-		// wait for the slow doc to finish loading...
-		await pause(SLOW_DOC_LOAD_TIME_MS + 1)
-
-		// we didn't update the doc to the slow doc, so it should still be A
-		expect(onDoc).not.toHaveBeenCalledWith({foo: "slow"})
+		return Promise.all([arrayDotThree, projectZeroItemZeroTitle])
 	})
 })
 
-const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
 interface ExampleDoc {
-	foo: string
+	key: string
+	array: number[]
+	hellos: {hello: string}[]
+	projects: {
+		title: string
+		items: {title: string; complete?: number}[]
+	}[]
 }
