@@ -21,21 +21,6 @@
 	"exports": {
 		".": {
 			"import": "./out/index.js"
-		},
-		"./projection": {
-			"import": "./out/create-document-projection.js"
-		},
-		"./store": {
-			"import": "./out/use-document-store.js"
-		},
-		"./use-repo": {
-			"import": "./out/use-repo.js"
-		},
-		"./use-handle": {
-			"import": "./out/use-handle.js"
-		},
-		"./use-document": {
-			"import": "./out/use-document.js"
 		}
 	},
 	"devDependencies": {
