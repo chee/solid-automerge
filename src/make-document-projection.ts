@@ -1,7 +1,7 @@
 import {onCleanup} from "solid-js"
 import {Doc, DocHandle, DocHandleChangePayload} from "@automerge/automerge-repo"
 import {autoproduce} from "./autoproduce.js"
-import {createStore, reconcile, type Store} from "solid-js/store"
+import {createStore, produce, reconcile, type Store} from "solid-js/store"
 
 const cache = new WeakMap<
 	DocHandle<unknown>,
@@ -31,7 +31,7 @@ export function makeDocumentProjection<T>(handle: DocHandle<T>) {
 	})
 
 	function patch(payload: DocHandleChangePayload<T>) {
-		set(autoproduce(payload.patches))
+		set(produce(autoproduce(payload.patches)))
 	}
 
 	set(handle.docSync() ?? ({} as T))
