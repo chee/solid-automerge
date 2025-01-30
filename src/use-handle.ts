@@ -8,7 +8,14 @@ const readyStates = ["ready", "deleted", "unavailable"] as HandleState[]
 const badStates = ["deleted", "unavailable"] as HandleState[]
 
 /**
- * get a `DocHandle` from an `AutomergeUrl`
+ * get a
+ * [DocHandle](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.DocHandle.html)
+ * from an
+ * [AutomergeUrl](https://automerge.org/automerge-repo/types/_automerge_automerge_repo.AutomergeUrl.html)
+ * as a
+ * [Resource](https://docs.solidjs.com/reference/basic-reactivity/create-resource).
+ * Waits for the handle to be
+ * [ready](https://automerge.org/automerge-repo/variables/_automerge_automerge_repo.HandleState-1.html).
  */
 export function useHandle<T>(
 	url: MaybeAccessor<AnyDocumentId | undefined>,
@@ -21,24 +28,28 @@ export function useHandle<T>(
 	}
 	const repo = (options?.repo || contextRepo)!
 
-	const [handle, {mutate, refetch}] = createResource(url, function (url) {
-		const handle = repo.find<T>(url)
-		const reject = (state: HandleState) =>
-			Promise.reject(new Error(`document not available: [${state}]`))
+	const [handle, {mutate}] = createResource(
+		url,
+		function (url) {
+			const handle = repo.find<T>(url)
+			const reject = (state: HandleState) =>
+				Promise.reject(new Error(`document not available: [${state}]`))
 
-		if (handle.isReady()) {
-			return handle
-		} else if (handle.inState(badStates)) {
-			return reject(handle.state)
-		}
-
-		return handle.whenReady(readyStates).then(() => {
 			if (handle.isReady()) {
 				return handle
+			} else if (handle.inState(badStates)) {
+				return reject(handle.state)
 			}
-			return reject(handle.state)
-		})
-	})
+
+			return handle.whenReady(readyStates).then(() => {
+				if (handle.isReady()) {
+					return handle
+				}
+				return reject(handle.state)
+			})
+		},
+		{initialValue: access(url) && repo.find<T>(access(url)!)}
+	)
 
 	createEffect(() => {
 		if (!access(url)) {
