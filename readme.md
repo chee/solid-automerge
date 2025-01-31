@@ -8,6 +8,10 @@ Automerge
 SolidJS
 </a>.
 
+```sh
+pnpm add automerge-repo-solid-primitives@next
+```
+
 ## useDocument ✨
 
 get a fine-grained live view of an automerge document from its URL.
