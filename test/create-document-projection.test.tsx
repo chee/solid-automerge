@@ -285,41 +285,32 @@ describe("createDocumentProjection", () => {
 			)
 		})
 
-		h2.change(doc => (doc.key = "document-2"))
-		expect(result.getByTestId("key-stable").textContent).toBe("value")
-		expect(result.getByTestId("key-changing").textContent).toBe("value")
+		return testEffect(async done => {
+			h2.change(doc => (doc.key = "document-2"))
+			expect(result.getByTestId("key-stable").textContent).toBe("value")
+			expect(result.getByTestId("key-changing").textContent).toBe("value")
 
-		await testEffect(done => {
 			h1.change(doc => (doc.key = "hello"))
-			done()
-		})
-		expect(result.getByTestId("key-stable").textContent).toBe("hello")
-		expect(result.getByTestId("key-changing").textContent).toBe("hello")
+			await new Promise<void>(setImmediate)
 
-		await testEffect(done => {
+			expect(result.getByTestId("key-stable").textContent).toBe("hello")
+			expect(result.getByTestId("key-changing").textContent).toBe("hello")
+
 			setChangingHandle(() => h2)
-			done()
-		})
-		expect(result.getByTestId("key-stable").textContent).toBe("hello")
-		expect(result.getByTestId("key-changing").textContent).toBe("document-2")
 
-		await testEffect(done => {
+			expect(result.getByTestId("key-stable").textContent).toBe("hello")
+			expect(result.getByTestId("key-changing").textContent).toBe("document-2")
+
 			setChangingHandle(() => h1)
-			done()
-		})
-		expect(result.getByTestId("key-stable").textContent).toBe("hello")
-		expect(result.getByTestId("key-changing").textContent).toBe("hello")
 
-		await testEffect(async done => {
+			expect(result.getByTestId("key-stable").textContent).toBe("hello")
+			expect(result.getByTestId("key-changing").textContent).toBe("hello")
+			done()
+
 			setChangingHandle(h2)
 			h2.change(doc => (doc.key = "world"))
-			done()
-		})
+			await new Promise<void>(setImmediate)
 
-		// todo why do i need to do this? `world` is `document-2` if i don't
-		await testEffect(done => done())
-
-		await testEffect(done => {
 			expect(result.getByTestId("key-stable").textContent).toBe("hello")
 			expect(result.getByTestId("key-changing").textContent).toBe("world")
 			done()

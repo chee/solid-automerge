@@ -242,42 +242,29 @@ describe("useDocument", () => {
 			)
 		})
 
-		h2.change(doc => (doc.key = "document-2"))
-		expect(result.getByTestId("key-stable").textContent).toBe("value")
-		expect(result.getByTestId("key-changing").textContent).toBe("value")
+		return testEffect(async done => {
+			h2.change(doc => (doc.key = "document-2"))
+			expect(result.getByTestId("key-stable").textContent).toBe("value")
+			expect(result.getByTestId("key-changing").textContent).toBe("value")
 
-		await testEffect(done => {
 			h1.change(doc => (doc.key = "hello"))
-			done()
-		})
+			await new Promise(yay => setImmediate(yay))
 
-		expect(result.getByTestId("key-stable").textContent).toBe("hello")
-		expect(result.getByTestId("key-changing").textContent).toBe("hello")
+			expect(result.getByTestId("key-stable").textContent).toBe("hello")
+			expect(result.getByTestId("key-changing").textContent).toBe("hello")
 
-		await testEffect(done => {
 			setChangingURL(u2)
-			done()
-		})
-		expect(result.getByTestId("key-stable").textContent).toBe("hello")
-		expect(result.getByTestId("key-changing").textContent).toBe("document-2")
+			expect(result.getByTestId("key-stable").textContent).toBe("hello")
+			expect(result.getByTestId("key-changing").textContent).toBe("document-2")
 
-		await testEffect(done => {
 			setChangingURL(u1)
-			done()
-		})
-		expect(result.getByTestId("key-stable").textContent).toBe("hello")
-		expect(result.getByTestId("key-changing").textContent).toBe("hello")
+			expect(result.getByTestId("key-stable").textContent).toBe("hello")
+			expect(result.getByTestId("key-changing").textContent).toBe("hello")
 
-		await testEffect(done => {
 			h2.change(doc => (doc.key = "world"))
+			await new Promise(yay => setImmediate(yay))
 			setChangingURL(u2)
-			done()
-		})
 
-		// todo why do i need to do this? `world` is `document-2` if i don't
-		await testEffect(done => done())
-
-		await testEffect(done => {
 			expect(result.getByTestId("key-stable").textContent).toBe("hello")
 			expect(result.getByTestId("key-changing").textContent).toBe("world")
 			done()
