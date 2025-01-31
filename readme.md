@@ -8,6 +8,14 @@ Automerge
 SolidJS
 </a>.
 
+> [!note]
+>
+> This library targets `@automerge/automerge-repo@2` which is currently in
+> Alpha.
+>
+> Changes adapting to breaking changes will be reflected as patch bumps in this
+> library, until `@automerge/automerge-repo@2` is stable.
+
 ```sh
 pnpm add automerge-repo-solid-primitives@next
 ```
