@@ -2,7 +2,12 @@ import {PeerId, Repo, type DocHandle} from "@automerge/automerge-repo"
 import {renderHook, testEffect} from "@solidjs/testing-library"
 import {describe, expect, it, vi} from "vitest"
 import {RepoContext} from "../src/use-repo.js"
-import {createEffect, type ParentComponent} from "solid-js"
+import {
+	createEffect,
+	createRoot,
+	createSignal,
+	type ParentComponent,
+} from "solid-js"
 import {makeDocumentProjection} from "../src/make-document-projection.js"
 
 describe("makeDocumentProjection", () => {
@@ -116,70 +121,77 @@ describe("makeDocumentProjection", () => {
 
 	it("should notify on a deep property change", async () => {
 		const {handle} = setup()
-		const {result: doc, owner} = renderHook(
-			makeDocumentProjection as (handle: DocHandle<ExampleDoc>) => ExampleDoc,
-			{
-				initialProps: [handle],
-			}
-		)
-
-		const done = testEffect(done => {
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc.projects[0].title).toBe("one")
-					handle.change(doc => (doc.projects[0].title = "hello world!"))
-				} else if (run == 1) {
-					expect(doc.projects[0].title).toBe("hello world!")
-					handle.change(doc => (doc.projects[0].title = "friday night!"))
-				} else if (run == 2) {
-					expect(doc.projects[0].title).toBe("friday night!")
-					done()
-				}
-				return run + 1
+		return createRoot(() => {
+			const doc = makeDocumentProjection<ExampleDoc>(handle)
+			return testEffect(done => {
+				createEffect((run: number = 0) => {
+					if (run == 0) {
+						expect(doc.projects[0].title).toBe("one")
+						handle.change(doc => (doc.projects[0].title = "hello world!"))
+					} else if (run == 1) {
+						expect(doc.projects[0].title).toBe("hello world!")
+						handle.change(doc => (doc.projects[0].title = "friday night!"))
+					} else if (run == 2) {
+						expect(doc.projects[0].title).toBe("friday night!")
+						done()
+					}
+					return run + 1
+				})
 			})
-		}, owner!)
-		return done
+		})
 	})
 
 	it("should not clean up when it should not clean up", async () => {
 		const {handle} = setup()
-		const {result: one, cleanup} = renderHook(
-			makeDocumentProjection as (handle: DocHandle<ExampleDoc>) => ExampleDoc,
-			{
-				initialProps: [handle],
-			}
-		)
-		const {result: two, owner: owner2} = renderHook(
-			makeDocumentProjection as (handle: DocHandle<ExampleDoc>) => ExampleDoc,
-			{
-				initialProps: [handle],
-			}
-		)
 
-		const done = testEffect(done => {
-			createEffect((run: number = 0) => {
-				// immediately clean up the first store
-				// this will detach its listener
-				// but both stores should continue updating,
-				// because of the other store
-				cleanup()
-				if (run == 0) {
-					expect(one.projects[0].title).toBe("one")
-					expect(two.projects[0].title).toBe("one")
-					handle.change(doc => (doc.projects[0].title = "hello world!"))
-				} else if (run == 1) {
-					expect(one.projects[0].title).toBe("hello world!")
-					expect(two.projects[0].title).toBe("hello world!")
-					handle.change(doc => (doc.projects[0].title = "friday night!"))
-				} else if (run == 2) {
-					expect(one.projects[0].title).toBe("friday night!")
-					expect(two.projects[0].title).toBe("friday night!")
-					done()
-				}
-				return run + 1
+		return createRoot(() => {
+			const [one, clean1] = createRoot(c => [makeDocumentProjection(handle), c])
+			const [two, clean2] = createRoot(c => [makeDocumentProjection(handle), c])
+			const [three, clean3] = createRoot(c => [
+				makeDocumentProjection(handle),
+				c,
+			])
+			const [signal, setSignal] = createSignal(0)
+			return testEffect(done => {
+				createEffect((run: number = 0) => {
+					signal()
+					expect(one.projects[0].title).not.toBeUndefined()
+					expect(two.projects[0].title).not.toBeUndefined()
+					expect(three.projects[0].title).not.toBeUndefined()
+					if (run == 0) {
+						// immediately clean up the first projection. updates should
+						// carry on because there is still another reference
+						clean1()
+						expect(one.projects[0].title).toBe("one")
+						expect(two.projects[0].title).toBe("one")
+						expect(three.projects[0].title).toBe("one")
+						handle.change(doc => (doc.projects[0].title = "hello world!"))
+					} else if (run == 1) {
+						// clean up another projection. updates should carry on
+						// because there is still one left
+						clean3()
+						expect(one.projects[0].title).toBe("hello world!")
+						expect(two.projects[0].title).toBe("hello world!")
+						expect(three.projects[0].title).toBe("hello world!")
+					} else if (run == 2) {
+						// now all the stores are cleaned up so further updates
+						// should not show in the store
+						clean2()
+						setSignal(1)
+					} else if (run == 3) {
+						handle.change(doc => (doc.projects[0].title = "friday night!"))
+						// force the test to run again
+						setSignal(2)
+					} else if (run == 4) {
+						expect(one.projects[0].title).toBe("hello world!")
+						expect(two.projects[0].title).toBe("hello world!")
+						expect(three.projects[0].title).toBe("hello world!")
+						done()
+					}
+					return run + 1
+				})
 			})
-		}, owner2!)
-		return done
+		})
 	})
 
 	it("should work with a slow handle", async () => {

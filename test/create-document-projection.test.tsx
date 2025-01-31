@@ -310,11 +310,14 @@ describe("createDocumentProjection", () => {
 		expect(result.getByTestId("key-stable").textContent).toBe("hello")
 		expect(result.getByTestId("key-changing").textContent).toBe("hello")
 
-		await testEffect(done => {
+		await testEffect(async done => {
 			setChangingHandle(h2)
 			h2.change(doc => (doc.key = "world"))
 			done()
 		})
+
+		// todo why do i need to do this? `world` is `document-2` if i don't
+		await testEffect(done => done())
 
 		await testEffect(done => {
 			expect(result.getByTestId("key-stable").textContent).toBe("hello")

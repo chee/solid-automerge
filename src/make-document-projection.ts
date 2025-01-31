@@ -6,8 +6,9 @@ import {createStore, produce, reconcile, type Store} from "solid-js/store"
 const cache = new WeakMap<
 	DocHandle<unknown>,
 	{
-		refcount: number
+		refs: number
 		store: Store<Doc<unknown>>
+		cleanup(): void
 	}
 >()
 
@@ -17,17 +18,28 @@ const cache = new WeakMap<
  * [DocHandle](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.DocHandle.html)
  */
 export function makeDocumentProjection<T>(handle: DocHandle<T>) {
+	onCleanup(() => {
+		const item = cache.get(handle)!
+		if (!item.refs--) {
+			item.cleanup()
+		}
+	})
+
 	if (cache.has(handle)) {
 		const item = cache.get(handle)!
-		item.refcount++
+		item.refs++
 		return item.store as Doc<T>
 	}
 
 	const [doc, set] = createStore<Doc<T>>(handle.docSync() ?? ({} as T))
 
 	cache.set(handle, {
-		refcount: 1,
+		refs: 0,
 		store: doc,
+		cleanup() {
+			handle.off("change", patch)
+			handle.off("delete", ondelete)
+		},
 	})
 
 	function patch(payload: DocHandleChangePayload<T>) {
@@ -42,14 +54,6 @@ export function makeDocumentProjection<T>(handle: DocHandle<T>) {
 
 	handle.on("change", patch)
 	handle.on("delete", ondelete)
-
-	onCleanup(() => {
-		const item = cache.get(handle)!
-		if (!item.refcount--) {
-			handle.off("change", patch)
-			handle.off("delete", ondelete)
-		}
-	})
 
 	handle.whenReady().then(() => {
 		set(handle.docSync() ?? ({} as T))

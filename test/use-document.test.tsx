@@ -268,11 +268,14 @@ describe("useDocument", () => {
 		expect(result.getByTestId("key-stable").textContent).toBe("hello")
 		expect(result.getByTestId("key-changing").textContent).toBe("hello")
 
-		await testEffect(async done => {
-			setChangingURL(u2)
+		await testEffect(done => {
 			h2.change(doc => (doc.key = "world"))
+			setChangingURL(u2)
 			done()
 		})
+
+		// todo why do i need to do this? `world` is `document-2` if i don't
+		await testEffect(done => done())
 
 		await testEffect(done => {
 			expect(result.getByTestId("key-stable").textContent).toBe("hello")
