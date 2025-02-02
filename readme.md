@@ -1,6 +1,6 @@
 # SolidJS primitives for Automerge Repo
 
-helpers for using <a href="https://automerge.org/docs/repositories/">
+Helpers for using <a href="https://automerge.org/docs/repositories/">
 <img alt="" src=.assets/automerge.png width=22 height=22>
 Automerge
 </a> with <a href="https://www.solidjs.com/">
@@ -11,24 +11,25 @@ SolidJS
 > [!note]
 >
 > This library targets `@automerge/automerge-repo@2` which is currently in
-> Alpha.
+> Alpha
 >
 > Changes adapting to breaking changes will be reflected as patch bumps in this
 > library, until `@automerge/automerge-repo@2` is stable.
 
 ```sh
+pnpm add @automerge/automerge-repo@next
 pnpm add automerge-repo-solid-primitives@next
 ```
 
 ## useDocument ✨
 
-get a fine-grained live view of an automerge document from its URL.
+Get a fine-grained live view of an automerge document from its URL.
 
-when the handle receives changes, it converts the incoming automerge patch ops
+When the handle receives changes, it converts the incoming automerge patch ops
 to precise solid store updates, giving you fine-grained reactivity that's
 consistent across space and time.
 
-returns `[doc, handle]`.
+Returns `[doc, handle]`.
 
 ```ts
 useDocument<T>(
@@ -46,15 +47,15 @@ const inc = () => handle()?.change(d => d.count++)
 return <button onclick={inc}>{doc()?.count}</button>
 ```
 
-the `{repo}` option can be left out if you are using [RepoContext](#repocontext).
+The `{repo}` option can be left out if you are using [RepoContext](#repocontext).
 
 ## createDocumentProjection
 
-get a fine-grained live view from a signal automerge handle.
+Get a fine-grained live view from a signal automerge handle.
 
-underlying primitive for [`useDocument`](#usedocument-).
+Underlying primitive for [`useDocument`](#usedocument-).
 
-works with [`useHandle`](#usehandle).
+Works with [`useHandle`](#usehandle).
 
 ```ts
 createDocumentProjection<T>(() => AutomergeUrl): Doc<T>
@@ -62,8 +63,8 @@ createDocumentProjection<T>(() => AutomergeUrl): Doc<T>
 
 ```tsx
 // example
-let handle = repo.find(url)
-let doc = makeDeepDocumentProjection<{items: {title: string}[]}>(handle)
+const handle = repo.find(url)
+const doc = makeDocumentProjection<{items: {title: string}[]}>(handle)
 
 // subscribes fine-grained to doc.items[1].title
 return <h1>{doc.items[1].title}</h1>
@@ -71,18 +72,18 @@ return <h1>{doc.items[1].title}</h1>
 
 ## makeDocumentProjection
 
-just like `useDocument`, but without a reactive input.
+Just like `createDocumentProjection`, but without a reactive input.
 
-underlying primitive for [`createDocumentProjection`](#createdocumentprojection).
+Underlying primitive for [`createDocumentProjection`](#createDocumentProjection).
 
 ```ts
-makeDeepDocumentProjection<T>(handle: Handle<T>): Doc<T>
+makeDocumentProjection<T>(handle: Handle<T>): Doc<T>
 ```
 
 ```tsx
 // example
-let handle = repo.find(url)
-let doc = makeDeepDocumentProjection<{items: {title: string}[]}>(handle)
+const handle = repo.find(url)
+const doc = makeDocumentProjection<{items: {title: string}[]}>(handle)
 
 // subscribes fine-grained to doc.items[1].title
 return <h1>{doc.items[1].title}</h1>
@@ -90,11 +91,11 @@ return <h1>{doc.items[1].title}</h1>
 
 ## useHandle
 
-get a [handle](https://automerge.org/docs/repositories/dochandles/) from the
+Get a [handle](https://automerge.org/docs/repositories/dochandles/) from the
 repo as a
 [resource](https://docs.solidjs.com/reference/basic-reactivity/create-resource).
 
-perfect for handing to `createDocumentProjection`.
+Perfect for handing to `createDocumentProjection`.
 
 ```ts
 useHandle<T>(
@@ -109,7 +110,7 @@ const handle = useHandle(id, {repo})
 const handle = useHandle(id)
 ```
 
-the `repo` option can be left out if you are using [RepoContext](#repocontext).
+The `repo` option can be left out if you are using [RepoContext](#repocontext).
 
 ## context
 

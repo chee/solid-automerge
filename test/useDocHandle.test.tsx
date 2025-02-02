@@ -6,8 +6,8 @@ import {
 } from "@automerge/automerge-repo"
 import {render, renderHook, waitFor} from "@solidjs/testing-library"
 import {afterEach, describe, expect, it, vi} from "vitest"
-import {useHandle} from "../src/use-handle.js"
-import {RepoContext} from "../src/use-repo.js"
+import useDocHandle from "../src/useDocHandle.js"
+import {RepoContext} from "../src/context.js"
 import {
 	createEffect,
 	createSignal,
@@ -16,7 +16,7 @@ import {
 	untrack,
 	type ParentComponent,
 } from "solid-js"
-import type {UseHandleOptions} from "../src/types.js"
+import type {UseDocHandleOptions} from "../src/types.js"
 
 interface ExampleDoc {
 	foo: string
@@ -28,7 +28,7 @@ function getRepoWrapper(repo: Repo): ParentComponent {
 	)
 }
 
-describe("useHandle", () => {
+describe("useDocHandle", () => {
 	afterEach(() => {
 		document.body.innerHTML = ""
 	})
@@ -54,9 +54,9 @@ describe("useHandle", () => {
 	const Component = (props: {
 		url: AutomergeUrl | undefined
 		onHandle: (handle: DocHandle<unknown> | undefined) => void
-		options?: UseHandleOptions
+		options?: UseDocHandleOptions
 	}) => {
-		const handle = useHandle(
+		const handle = useDocHandle(
 			() => props.url,
 			untrack(() => props.options)
 		)
@@ -120,7 +120,7 @@ describe("useHandle", () => {
 		const onHandle = vi.fn()
 		const [url, updateURL] = createSignal<AutomergeUrl | undefined>(undefined)
 
-		let hookResult = renderHook(useHandle, {
+		let hookResult = renderHook(useDocHandle, {
 			initialProps: [url],
 			wrapper,
 		})

@@ -1,6 +1,6 @@
 import {onCleanup} from "solid-js"
 import {Doc, DocHandle, DocHandleChangePayload} from "@automerge/automerge-repo"
-import {autoproduce} from "./autoproduce.js"
+import autoproduce from "./autoproduce.js"
 import {createStore, produce, reconcile, type Store} from "solid-js/store"
 
 const cache = new WeakMap<
@@ -17,7 +17,7 @@ const cache = new WeakMap<
  * @param handle an Automerge
  * [DocHandle](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.DocHandle.html)
  */
-export function makeDocumentProjection<T>(handle: DocHandle<T>) {
+export default function makeDocumentProjection<T>(handle: DocHandle<T>) {
 	onCleanup(() => {
 		const item = cache.get(handle)!
 		if (!item) return

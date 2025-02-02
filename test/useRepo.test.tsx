@@ -1,8 +1,9 @@
 import {Repo} from "@automerge/automerge-repo"
 import {render} from "@solidjs/testing-library"
 import {describe, expect, test, vi} from "vitest"
-import {RepoContext, useRepo} from "../src/use-repo.js"
 import type {ParentComponent} from "solid-js"
+import useRepo from "../src/useRepo.js"
+import {RepoContext} from "../src/context.js"
 
 describe("useRepo", () => {
 	const Component = ({onRepo}: {onRepo: (repo: Repo) => void}) => {

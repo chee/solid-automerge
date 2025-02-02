@@ -1,14 +1,14 @@
 import {PeerId, Repo, type DocHandle} from "@automerge/automerge-repo"
 import {renderHook, testEffect} from "@solidjs/testing-library"
 import {describe, expect, it, vi} from "vitest"
-import {RepoContext} from "../src/use-repo.js"
 import {
 	createEffect,
 	createRoot,
 	createSignal,
 	type ParentComponent,
 } from "solid-js"
-import {makeDocumentProjection} from "../src/make-document-projection.js"
+import makeDocumentProjection from "../src/makeDocumentProjection.js"
+import {RepoContext} from "../src/context.js"
 
 describe("makeDocumentProjection", () => {
 	function setup() {

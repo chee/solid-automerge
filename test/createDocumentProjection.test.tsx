@@ -6,15 +6,15 @@ import {
 } from "@automerge/automerge-repo"
 import {render, renderHook, testEffect} from "@solidjs/testing-library"
 import {describe, expect, it, vi} from "vitest"
-import {RepoContext} from "../src/use-repo.js"
+import {RepoContext} from "../src/context.js"
 import {
 	createEffect,
 	createSignal,
 	type Accessor,
 	type ParentComponent,
 } from "solid-js"
-import {useHandle} from "../src/use-handle.js"
-import {createDocumentProjection} from "../src/create-document-projection.js"
+import useDocHandle from "../src/useDocHandle.js"
+import createDocumentProjection from "../src/createDocumentProjection.js"
 
 describe("createDocumentProjection", () => {
 	function setup() {
@@ -125,7 +125,7 @@ describe("createDocumentProjection", () => {
 		return Promise.allSettled([done1, done2])
 	})
 
-	it("should work with useHandle", async () => {
+	it("should work with useDocHandle", async () => {
 		const {
 			handle: {url: startingUrl},
 			wrapper,
@@ -133,7 +133,7 @@ describe("createDocumentProjection", () => {
 
 		const [url, setURL] = createSignal<AutomergeUrl>()
 
-		const {result: handle} = renderHook(useHandle<ExampleDoc>, {
+		const {result: handle} = renderHook(useDocHandle<ExampleDoc>, {
 			initialProps: [url],
 			wrapper,
 		})
@@ -171,7 +171,7 @@ describe("createDocumentProjection", () => {
 	it("should work with a signal url", async () => {
 		const {create, wrapper} = setup()
 		const [url, setURL] = createSignal<AutomergeUrl>()
-		const {result: handle} = renderHook(useHandle<ExampleDoc>, {
+		const {result: handle} = renderHook(useDocHandle<ExampleDoc>, {
 			initialProps: [url],
 			wrapper,
 		})
@@ -210,7 +210,7 @@ describe("createDocumentProjection", () => {
 	it("should clear the store when the signal returns to nothing", async () => {
 		const {create, wrapper} = setup()
 		const [url, setURL] = createSignal<AutomergeUrl>()
-		const {result: handle} = renderHook(useHandle<ExampleDoc>, {
+		const {result: handle} = renderHook(useDocHandle<ExampleDoc>, {
 			initialProps: [url],
 			wrapper,
 		})
@@ -328,7 +328,7 @@ describe("createDocumentProjection", () => {
 		})
 
 		await testEffect(done => {
-			const handle = useHandle<{im: "slow"}>(
+			const handle = useDocHandle<{im: "slow"}>(
 				() => repo.create({im: "slow"}).url,
 				{repo}
 			)

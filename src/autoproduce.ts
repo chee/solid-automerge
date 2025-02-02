@@ -10,7 +10,7 @@ import {apply, fromAutomerge} from "cabbages"
  * [Solid
  * Stores](https://docs.solidjs.com/reference/store-utilities/create-store)
  */
-export function autoproduce<T>(patches: Patch[]) {
+export default function autoproduce<T>(patches: Patch[]) {
 	return (doc: T) => {
 		for (let patch of patches) {
 			const [path, range, val] = fromAutomerge(patch)

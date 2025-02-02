@@ -6,8 +6,8 @@ import {
 } from "@automerge/automerge-repo/slim"
 import {createEffect, createResource, useContext} from "solid-js"
 import {access, type MaybeAccessor} from "@solid-primitives/utils"
-import {RepoContext} from "./use-repo.js"
-import type {UseHandleOptions} from "./types.js"
+import {RepoContext} from "./context.js"
+import type {UseDocHandleOptions} from "./types.js"
 
 const readyStates = ["ready", "deleted", "unavailable"] as HandleState[]
 const badStates = ["deleted", "unavailable"] as HandleState[]
@@ -22,15 +22,16 @@ const badStates = ["deleted", "unavailable"] as HandleState[]
  * Waits for the handle to be
  * [ready](https://automerge.org/automerge-repo/variables/_automerge_automerge_repo.HandleState-1.html).
  */
-export function useHandle<T>(
+export default function useDocHandle<T>(
 	url: MaybeAccessor<AutomergeUrl | undefined>,
-	options?: UseHandleOptions
+	options?: UseDocHandleOptions
 ) {
 	const contextRepo = useContext(RepoContext)
 
 	if (!options?.repo && !contextRepo) {
 		throw new Error("use outside <RepoContext> requires options.repo")
 	}
+
 	const repo = (options?.repo || contextRepo)!
 
 	function getExistingHandle() {
