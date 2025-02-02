@@ -20,6 +20,7 @@ const cache = new WeakMap<
 export function makeDocumentProjection<T>(handle: DocHandle<T>) {
 	onCleanup(() => {
 		const item = cache.get(handle)!
+		if (!item) return
 		if (!item.refs--) {
 			item.cleanup()
 		}

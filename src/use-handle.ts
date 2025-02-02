@@ -33,37 +33,26 @@ export function useHandle<T>(
 	}
 	const repo = (options?.repo || contextRepo)!
 
-	const [handle, {mutate}] = createResource(
-		url,
-		async url => {
-			const handle = await repo.find<T>(url, {
-				allowableStates: readyStates,
-			})
-			const reject = (state: HandleState) =>
-				Promise.reject(new Error(`document not available: [${state}]`))
+	const [handle, {mutate}] = createResource(url, async url => {
+		const handle = await repo.find<T>(url, {
+			allowableStates: readyStates,
+		})
+		const reject = (state: HandleState) =>
+			Promise.reject(new Error(`document not available: [${state}]`))
 
+		if (handle.isReady()) {
+			return handle
+		} else if (handle.inState(badStates)) {
+			return reject(handle.state)
+		}
+
+		return handle.whenReady(readyStates).then(() => {
 			if (handle.isReady()) {
 				return handle
-			} else if (handle.inState(badStates)) {
-				return reject(handle.state)
 			}
-
-			return handle.whenReady(readyStates).then(() => {
-				if (handle.isReady()) {
-					return handle
-				}
-				return reject(handle.state)
-			})
-		},
-		{
-			initialValue: options?.["~skipInitialValue"]
-				? undefined
-				: access(url) &&
-					(repo.handles[parseAutomergeUrl(access(url)!).documentId] as
-						| DocHandle<T>
-						| undefined),
-		}
-	)
+			return reject(handle.state)
+		})
+	})
 
 	createEffect(() => {
 		if (!access(url)) {
