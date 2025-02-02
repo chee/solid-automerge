@@ -34,6 +34,7 @@ export function useHandle<T>(
 	const repo = (options?.repo || contextRepo)!
 
 	function getExistingHandle() {
+		if (options?.["~skipInitialValue"]) return undefined
 		const unwrappedURL = access(url)
 		if (!unwrappedURL) return undefined
 		const parsedURL = parseAutomergeUrl(unwrappedURL)
