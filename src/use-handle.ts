@@ -33,26 +33,42 @@ export function useHandle<T>(
 	}
 	const repo = (options?.repo || contextRepo)!
 
-	const [handle, {mutate}] = createResource(url, async url => {
-		const handle = await repo.find<T>(url, {
-			allowableStates: readyStates,
-		})
-		const reject = (state: HandleState) =>
-			Promise.reject(new Error(`document not available: [${state}]`))
-
-		if (handle.isReady()) {
-			return handle
-		} else if (handle.inState(badStates)) {
-			return reject(handle.state)
+	function getExistingHandle() {
+		const unwrappedURL = access(url)
+		if (!unwrappedURL) return undefined
+		const parsedURL = parseAutomergeUrl(unwrappedURL)
+		const existingHandle = repo.handles[parsedURL.documentId]
+		if (existingHandle.isReady()) {
+			return existingHandle as DocHandle<T>
 		}
+	}
 
-		return handle.whenReady(readyStates).then(() => {
+	const [handle, {mutate}] = createResource(
+		url,
+		async url => {
+			const handle = await repo.find<T>(url, {
+				allowableStates: readyStates,
+			})
+			const reject = (state: HandleState) =>
+				Promise.reject(new Error(`document not available: [${state}]`))
+
 			if (handle.isReady()) {
 				return handle
+			} else if (handle.inState(badStates)) {
+				return reject(handle.state)
 			}
-			return reject(handle.state)
-		})
-	})
+
+			return handle.whenReady(readyStates).then(() => {
+				if (handle.isReady()) {
+					return handle
+				}
+				return reject(handle.state)
+			})
+		},
+		{
+			initialValue: getExistingHandle(),
+		}
+	)
 
 	createEffect(() => {
 		if (!access(url)) {
