@@ -51,7 +51,7 @@ The `{repo}` option can be left out if you are using [RepoContext](#repocontext)
 
 ## createDocumentProjection
 
-Get a fine-grained live view from a signal automerge handle.
+Get a fine-grained live view from a signal automerge `DocHandle`.
 
 Underlying primitive for [`useDocument`](#usedocument-).
 
@@ -89,25 +89,25 @@ const doc = makeDocumentProjection<{items: {title: string}[]}>(handle)
 return <h1>{doc.items[1].title}</h1>
 ```
 
-## useHandle
+## useDocHandle
 
-Get a [handle](https://automerge.org/docs/repositories/dochandles/) from the
+Get a [DocHandle](https://automerge.org/docs/repositories/dochandles/) from the
 repo as a
 [resource](https://docs.solidjs.com/reference/basic-reactivity/create-resource).
 
 Perfect for handing to `createDocumentProjection`.
 
 ```ts
-useHandle<T>(
+useDocHandle<T>(
     () => AnyDocumentId,
     options?: {repo: Repo}
 ): Resource<Handle<T>>
 ```
 
 ```tsx
-const handle = useHandle(id, {repo})
+const handle = useDocHandle(id, {repo})
 // or
-const handle = useHandle(id)
+const handle = useDocHandle(id)
 ```
 
 The `repo` option can be left out if you are using [RepoContext](#repocontext).
@@ -120,7 +120,7 @@ up in your app with `RepoContext`
 ### `RepoContext`
 
 A convenience context for Automerge-Repo Solid apps. Optional: if you prefer you
-can pass a repo as an option to `useHandle`.
+can pass a repo as an option to `useDocHandle` and `useDocument`.
 
 ```tsx
 <RepoContext.Provider repo={Repo}>
