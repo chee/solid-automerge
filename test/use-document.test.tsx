@@ -1,9 +1,4 @@
-import {
-	PeerId,
-	Repo,
-	type AnyDocumentId,
-	type AutomergeUrl,
-} from "@automerge/automerge-repo"
+import {PeerId, Repo, type AutomergeUrl} from "@automerge/automerge-repo"
 import {render, renderHook, testEffect} from "@solidjs/testing-library"
 import {describe, expect, it, vi} from "vitest"
 import {RepoContext} from "../src/use-repo.js"
@@ -52,14 +47,9 @@ describe("useDocument", () => {
 
 	it("should notify on a property change", async () => {
 		const {create, options} = setup()
-		const {
-			result: [doc, handle],
-			owner,
-		} = renderHook(useDocument<ExampleDoc>, {
-			initialProps: [create().url, options],
-		})
 
-		const done = testEffect(done => {
+		await testEffect(done => {
+			const [doc, handle] = useDocument<ExampleDoc>(create().url, options)
 			createEffect((run: number = 0) => {
 				if (run == 0) {
 					expect(doc()?.key).toBe("value")
@@ -73,8 +63,7 @@ describe("useDocument", () => {
 				}
 				return run + 1
 			})
-		}, owner!)
-		return done
+		})
 	})
 
 	it("should not apply patches multiple times just because there are multiple projections", async () => {
@@ -83,49 +72,37 @@ describe("useDocument", () => {
 			options,
 		} = setup()
 
-		const {
-			result: [one, oneHandle],
-			owner: owner1,
-		} = renderHook(useDocument<ExampleDoc>, {
-			initialProps: [url, options],
-		})
-
-		const {
-			result: [two, twoHandle],
-			owner: owner2,
-		} = renderHook(useDocument<ExampleDoc>, {
-			initialProps: [url, options],
-		})
-
 		const done2 = testEffect(done => {
+			const [two, handle] = useDocument<ExampleDoc>(url, options)
 			createEffect((run: number = 0) => {
 				if (run == 0) {
 					expect(two()?.array).toEqual([1, 2, 3])
 				} else if (run == 1) {
 					expect(two()?.array).toEqual([1, 2, 3, 4])
+					handle()?.change(doc => doc.array.push(5))
 				} else if (run == 2) {
 					expect(two()?.array).toEqual([1, 2, 3, 4, 5])
 					done()
 				}
 				return run + 1
 			})
-		}, owner2!)
+		})
 
 		const done1 = testEffect(done => {
+			const [one, handle] = useDocument<ExampleDoc>(url, options)
 			createEffect((run: number = 0) => {
 				if (run == 0) {
 					expect(one()?.array).toEqual([1, 2, 3])
-					oneHandle()?.change(doc => doc.array.push(4))
+					handle()?.change(doc => doc.array.push(4))
 				} else if (run == 1) {
 					expect(one()?.array).toEqual([1, 2, 3, 4])
-					twoHandle()?.change(doc => doc.array.push(5))
 				} else if (run == 2) {
 					expect(one()?.array).toEqual([1, 2, 3, 4, 5])
 					done()
 				}
 				return run + 1
 			})
-		}, owner1!)
+		})
 
 		return Promise.allSettled([done1, done2])
 	})
@@ -166,17 +143,11 @@ describe("useDocument", () => {
 	})
 
 	it("should clear the store when the url signal returns to nothing", async () => {
-		const {create, wrapper, options} = setup()
+		const {create, options} = setup()
 		const [url, setURL] = createSignal<AutomergeUrl>()
-		const {
-			result: [doc, handle],
-			owner,
-		} = renderHook(useDocument<ExampleDoc>, {
-			initialProps: [url, options],
-			wrapper,
-		})
 
 		const done = testEffect(done => {
+			const [doc, handle] = useDocument<ExampleDoc>(url, options)
 			createEffect((run: number = 0) => {
 				if (run == 0) {
 					expect(doc()?.key).toBe(undefined)
@@ -198,7 +169,7 @@ describe("useDocument", () => {
 
 				return run + 1
 			})
-		}, owner!)
+		})
 		return done
 	})
 
@@ -212,37 +183,33 @@ describe("useDocument", () => {
 		const [stableURL] = createSignal(u1)
 		const [changingURL, setChangingURL] = createSignal(u1)
 
-		const result = render(() => {
-			function Component(props: {
-				stableURL: Accessor<AnyDocumentId>
-				changingURL: Accessor<AnyDocumentId>
-			}) {
-				const [stableDoc] = useDocument<ExampleDoc>(
-					// eslint-disable-next-line solid/reactivity
-					props.stableURL
-				)
+		await testEffect(async done => {
+			const result = render(() => {
+				function Component(props: {
+					stableURL: Accessor<AutomergeUrl>
+					changingURL: Accessor<AutomergeUrl>
+				}) {
+					const [stableDoc] = useDocument<ExampleDoc>(() => props.stableURL())
 
-				const [changingDoc] = useDocument<ExampleDoc>(
-					// eslint-disable-next-line solid/reactivity
-					props.changingURL
-				)
+					const [changingDoc] = useDocument<ExampleDoc>(() =>
+						props.changingURL()
+					)
+
+					return (
+						<>
+							<div data-testid="key-stable">{stableDoc()?.key}</div>
+							<div data-testid="key-changing">{changingDoc()?.key}</div>
+						</>
+					)
+				}
 
 				return (
-					<>
-						<div data-testid="key-stable">{stableDoc()?.key}</div>
-						<div data-testid="key-changing">{changingDoc()?.key}</div>
-					</>
+					<RepoContext.Provider value={repo}>
+						<Component stableURL={stableURL} changingURL={changingURL} />
+					</RepoContext.Provider>
 				)
-			}
+			})
 
-			return (
-				<RepoContext.Provider value={repo}>
-					<Component stableURL={stableURL} changingURL={changingURL} />
-				</RepoContext.Provider>
-			)
-		})
-
-		return testEffect(async done => {
 			h2.change(doc => (doc.key = "document-2"))
 			expect(result.getByTestId("key-stable").textContent).toBe("value")
 			expect(result.getByTestId("key-changing").textContent).toBe("value")
@@ -254,65 +221,53 @@ describe("useDocument", () => {
 			expect(result.getByTestId("key-changing").textContent).toBe("hello")
 
 			setChangingURL(u2)
+			await new Promise(yay => setImmediate(yay))
 			expect(result.getByTestId("key-stable").textContent).toBe("hello")
 			expect(result.getByTestId("key-changing").textContent).toBe("document-2")
+			h2.change(doc => (doc.key = "world"))
 
 			setChangingURL(u1)
+			await new Promise(yay => setImmediate(yay))
 			expect(result.getByTestId("key-stable").textContent).toBe("hello")
 			expect(result.getByTestId("key-changing").textContent).toBe("hello")
 
-			h2.change(doc => (doc.key = "world"))
-			await new Promise(yay => setImmediate(yay))
 			setChangingURL(u2)
+			await new Promise(yay => setImmediate(yay))
 
 			expect(result.getByTestId("key-stable").textContent).toBe("hello")
 			expect(result.getByTestId("key-changing").textContent).toBe("world")
+
 			done()
 		})
 	})
 
 	it("should work with a slow handle", async () => {
-		const {create, options} = setup()
-		const handleSlow = create()
-		handleSlow.change(doc => (doc.key = "slow"))
-		const oldDoc = handleSlow.doc.bind(handleSlow)
-		let loaded = false
-		const delay = new Promise<boolean>(resolve =>
-			setTimeout(() => {
-				loaded = true
-				resolve(true)
-			}, 100)
-		)
-		handleSlow.doc = async () => {
-			await delay
-			const result = await oldDoc()
-			return result
-		}
+		const {repo} = setup()
 
-		const oldDocSync = handleSlow.docSync.bind(handleSlow)
-		handleSlow.docSync = () => {
-			return loaded ? oldDocSync() : undefined
-		}
-		handleSlow.isReady = () => loaded
-		handleSlow.whenReady = () => delay.then(() => {})
-
-		const {
-			result: [doc],
-			owner,
-		} = renderHook(useDocument<ExampleDoc>, {
-			initialProps: [handleSlow.url, options],
+		const slowHandle = repo.create({im: "slow"})
+		const originalFind = repo.find.bind(repo)
+		repo.find = vi.fn().mockImplementation(async (...args) => {
+			await new Promise(resolve => setTimeout(resolve, 100))
+			// @ts-expect-error i'm ok i promise
+			return await originalFind(...args)
 		})
+
 		const done = testEffect(done => {
+			const [doc] = useDocument<{im: "slow"}>(() => slowHandle.url, {
+				repo,
+				"~skipInitialValue": true,
+			})
 			createEffect((run: number = 0) => {
 				if (run == 0) {
-					expect(doc()?.key).toBe(undefined)
+					expect(doc()?.im).toBe(undefined)
 				} else if (run == 1) {
-					expect(doc()?.key).toBe("slow")
+					expect(doc()?.im).toBe("slow")
 					done()
 				}
 				return run + 1
 			})
-		}, owner!)
+		})
+		repo.find = originalFind
 		return done
 	})
 
@@ -321,14 +276,11 @@ describe("useDocument", () => {
 			handle: {url},
 			options,
 		} = setup()
+
 		let fn = vi.fn()
 
-		const {
-			result: [doc, handle],
-			owner,
-		} = renderHook(useDocument<ExampleDoc>, {
-			initialProps: [url, options],
-		})
+		const [doc, handle] = useDocument<ExampleDoc>(url, options)
+
 		testEffect(() => {
 			createEffect(() => {
 				fn(doc()?.projects[1].title)
@@ -355,7 +307,8 @@ describe("useDocument", () => {
 				}
 				return run + 1
 			})
-		}, owner!)
+		})
+
 		const projectZeroItemZeroTitle = testEffect(done => {
 			createEffect((run: number = 0) => {
 				if (run == 0) {
@@ -364,7 +317,7 @@ describe("useDocument", () => {
 				}
 				return run + 1
 			})
-		}, owner!)
+		})
 
 		expect(fn).toHaveBeenCalledOnce()
 		expect(fn).toHaveBeenCalledWith("two")

@@ -1,8 +1,13 @@
-import type {AnyDocumentId, HandleState} from "@automerge/automerge-repo/slim"
+import {
+	parseAutomergeUrl,
+	type AutomergeUrl,
+	type DocHandle,
+	type HandleState,
+} from "@automerge/automerge-repo/slim"
 import {createEffect, createResource, useContext} from "solid-js"
 import {access, type MaybeAccessor} from "@solid-primitives/utils"
 import {RepoContext} from "./use-repo.js"
-import type {BaseOptions} from "./types.js"
+import type {UseHandleOptions} from "./types.js"
 
 const readyStates = ["ready", "deleted", "unavailable"] as HandleState[]
 const badStates = ["deleted", "unavailable"] as HandleState[]
@@ -18,8 +23,8 @@ const badStates = ["deleted", "unavailable"] as HandleState[]
  * [ready](https://automerge.org/automerge-repo/variables/_automerge_automerge_repo.HandleState-1.html).
  */
 export function useHandle<T>(
-	url: MaybeAccessor<AnyDocumentId | undefined>,
-	options?: BaseOptions
+	url: MaybeAccessor<AutomergeUrl | undefined>,
+	options?: UseHandleOptions
 ) {
 	const contextRepo = useContext(RepoContext)
 
@@ -30,8 +35,10 @@ export function useHandle<T>(
 
 	const [handle, {mutate}] = createResource(
 		url,
-		function (url) {
-			const handle = repo.find<T>(url)
+		async url => {
+			const handle = await repo.find<T>(url, {
+				allowableStates: readyStates,
+			})
 			const reject = (state: HandleState) =>
 				Promise.reject(new Error(`document not available: [${state}]`))
 
@@ -48,7 +55,14 @@ export function useHandle<T>(
 				return reject(handle.state)
 			})
 		},
-		{initialValue: access(url) && repo.find<T>(access(url)!)}
+		{
+			initialValue: options?.["~skipInitialValue"]
+				? undefined
+				: access(url) &&
+					(repo.handles[parseAutomergeUrl(access(url)!).documentId] as
+						| DocHandle<T>
+						| undefined),
+		}
 	)
 
 	createEffect(() => {

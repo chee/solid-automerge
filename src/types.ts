@@ -1,5 +1,6 @@
 import type {Repo} from "@automerge/automerge-repo"
 
-export interface BaseOptions {
+export interface UseHandleOptions {
 	repo?: Repo
+	"~skipInitialValue"?: boolean
 }

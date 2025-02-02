@@ -16,7 +16,7 @@ import {
 	untrack,
 	type ParentComponent,
 } from "solid-js"
-import type {BaseOptions} from "../src/types.js"
+import type {UseHandleOptions} from "../src/types.js"
 
 interface ExampleDoc {
 	foo: string
@@ -54,7 +54,7 @@ describe("useHandle", () => {
 	const Component = (props: {
 		url: AutomergeUrl | undefined
 		onHandle: (handle: DocHandle<unknown> | undefined) => void
-		options?: BaseOptions
+		options?: UseHandleOptions
 	}) => {
 		const handle = useHandle(
 			() => props.url,

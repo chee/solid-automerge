@@ -31,7 +31,7 @@ export function makeDocumentProjection<T>(handle: DocHandle<T>) {
 		return item.store as Doc<T>
 	}
 
-	const [doc, set] = createStore<Doc<T>>(handle.docSync() ?? ({} as T))
+	const [doc, set] = createStore<Doc<T>>(handle.doc())
 
 	cache.set(handle, {
 		refs: 0,
@@ -46,8 +46,6 @@ export function makeDocumentProjection<T>(handle: DocHandle<T>) {
 		set(produce(autoproduce(payload.patches)))
 	}
 
-	set(handle.docSync() ?? ({} as T))
-
 	function ondelete() {
 		set(reconcile({} as Doc<T>))
 	}
@@ -56,7 +54,7 @@ export function makeDocumentProjection<T>(handle: DocHandle<T>) {
 	handle.on("delete", ondelete)
 
 	handle.whenReady().then(() => {
-		set(handle.docSync() ?? ({} as T))
+		set(handle.doc())
 	})
 
 	return doc

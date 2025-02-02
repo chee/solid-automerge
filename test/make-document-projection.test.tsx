@@ -194,51 +194,6 @@ describe("makeDocumentProjection", () => {
 		})
 	})
 
-	it("should work with a slow handle", async () => {
-		const {create} = setup()
-		const handleSlow = create()
-		handleSlow.change(doc => (doc.key = "slow"))
-		const oldDoc = handleSlow.doc.bind(handleSlow)
-		let loaded = false
-		const delay = new Promise<boolean>(resolve =>
-			setTimeout(() => {
-				loaded = true
-				resolve(true)
-			}, 100)
-		)
-		handleSlow.doc = async () => {
-			await delay
-			const result = await oldDoc()
-			return result
-		}
-
-		const oldDocSync = handleSlow.docSync.bind(handleSlow)
-		handleSlow.docSync = () => {
-			return loaded ? oldDocSync() : undefined
-		}
-		handleSlow.isReady = () => loaded
-		handleSlow.whenReady = () => delay.then(() => {})
-
-		const {result: doc, owner} = renderHook(
-			makeDocumentProjection<ExampleDoc>,
-			{
-				initialProps: [handleSlow],
-			}
-		)
-		const done = testEffect(done => {
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc.key).toBe(undefined)
-				} else if (run == 1) {
-					expect(doc.key).toBe("slow")
-					done()
-				}
-				return run + 1
-			})
-		}, owner!)
-		return done
-	})
-
 	it("should not notify on properties nobody cares about", async () => {
 		const {handle} = setup()
 		let fn = vi.fn()
