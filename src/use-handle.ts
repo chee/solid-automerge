@@ -38,7 +38,7 @@ export function useHandle<T>(
 		if (!unwrappedURL) return undefined
 		const parsedURL = parseAutomergeUrl(unwrappedURL)
 		const existingHandle = repo.handles[parsedURL.documentId]
-		if (existingHandle.isReady()) {
+		if (existingHandle?.isReady()) {
 			return existingHandle as DocHandle<T>
 		}
 	}
