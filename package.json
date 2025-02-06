@@ -1,6 +1,6 @@
 {
 	"name": "automerge-repo-solid-primitives",
-	"version": "2.0.0-beta.12",
+	"version": "2.0.0-beta.14",
 	"description": "automerge-repo primitives for your solidjs app",
 	"type": "module",
 	"main": "out/index.js",
