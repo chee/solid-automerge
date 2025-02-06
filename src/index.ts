@@ -1,6 +1,6 @@
 export {default as autoproduce} from "./autoproduce.js"
 export {default as useDocument} from "./useDocument.js"
-export {default as useHandle} from "./useDocHandle.js"
+export {default as useDocHandle} from "./useDocHandle.js"
 export {default as makeDocumentProjection} from "./makeDocumentProjection.js"
 export {default as createDocumentProjection} from "./createDocumentProjection.js"
 export {default as useRepo} from "./useRepo.js"

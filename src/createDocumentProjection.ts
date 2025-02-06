@@ -5,7 +5,7 @@ import {access} from "@solid-primitives/utils"
 
 /**
  * get a fine-grained live view of a document from a handle. works with
- * {@link useHandle}.
+ * {@link useDocHandle}.
  * @param handle an accessor (signal/resource) of a
  * [DocHandle](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.DocHandle.html)
  */
