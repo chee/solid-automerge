@@ -3,8 +3,9 @@ import {apply, fromAutomerge} from "cabbages"
 
 /**
  * convert automerge patches to solid producer operations
- * @param patches the patches fresh from a
+ * @param payload the
  * [DocHandleChangePayload](https://automerge.org/automerge-repo/interfaces/_automerge_automerge_repo.DocHandleChangePayload.html)
+ * from the handle.on("change
  * @returns a callback for an immer-like function. e.g.
  * [produce](https://docs.solidjs.com/reference/store-utilities/produce) for
  * [Solid
