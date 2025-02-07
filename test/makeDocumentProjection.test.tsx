@@ -141,25 +141,6 @@ describe("makeDocumentProjection", () => {
 		})
 	})
 
-	it.only("should be handle conflict well", async () => {
-		const {repo} = setup()
-		const handle1 = repo.create({a: true})
-		const promise = new Promise<void>(resolve => {
-			handle1.on("change", payload => {
-				console.log(payload.patches.map(p => p.action))
-				expect(payload.patches[0].action).toBe("conflict")
-				resolve()
-			})
-			const handle2 = repo.create({
-				a: {b: {c: {d: {e: {f: [1, 2, 3, {g: 4}]}}}}},
-			})
-			handle1.merge(handle2)
-		})
-
-		// expect(handle1.doc().a).toEqual(true)
-		return promise
-	})
-
 	it("should not clean up when it should not clean up", async () => {
 		const {handle} = setup()
 
@@ -177,6 +158,7 @@ describe("makeDocumentProjection", () => {
 					expect(one.projects[0].title).not.toBeUndefined()
 					expect(two.projects[0].title).not.toBeUndefined()
 					expect(three.projects[0].title).not.toBeUndefined()
+
 					if (run == 0) {
 						// immediately clean up the first projection. updates should
 						// carry on because there is still another reference
@@ -192,15 +174,16 @@ describe("makeDocumentProjection", () => {
 						expect(one.projects[0].title).toBe("hello world!")
 						expect(two.projects[0].title).toBe("hello world!")
 						expect(three.projects[0].title).toBe("hello world!")
+						setSignal(1)
 					} else if (run == 2) {
 						// now all the stores are cleaned up so further updates
 						// should not show in the store
 						clean2()
-						setSignal(1)
+						setSignal(2)
 					} else if (run == 3) {
 						handle.change(doc => (doc.projects[0].title = "friday night!"))
 						// force the test to run again
-						setSignal(2)
+						setSignal(3)
 					} else if (run == 4) {
 						expect(one.projects[0].title).toBe("hello world!")
 						expect(two.projects[0].title).toBe("hello world!")
