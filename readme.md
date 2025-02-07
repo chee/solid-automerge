@@ -1,12 +1,9 @@
-# SolidJS primitives for Automerge Repo
+# solid-automrerge
 
-Helpers for using <a href="https://automerge.org/docs/repositories/">
-<img alt="" src=.assets/automerge.png width=22 height=22>
-Automerge
-</a> with <a href="https://www.solidjs.com/">
-<img alt="" src=.assets/solid.png width=22 height=22>
-SolidJS
-</a>.
+<a href="https://www.solidjs.com/"> <img alt="" src=.assets/solid.png width=22
+height=22> Solid </a> primitives for <a
+href="https://automerge.org/docs/repositories/"> <img alt=""
+src=.assets/automerge.png width=22 height=22>Automerge</a> .
 
 > [!note]
 >
@@ -17,8 +14,8 @@ SolidJS
 > library, until `@automerge/automerge-repo@2` is stable.
 
 ```sh
-pnpm add @automerge/automerge-repo@next
-pnpm add automerge-repo-solid-primitives@next
+pnpm add solidjs @automerge/automerge-repo@next
+pnpm add solid-automerge
 ```
 
 ## useDocument ✨
