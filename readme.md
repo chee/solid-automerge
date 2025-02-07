@@ -1,4 +1,4 @@
-# solid-automerge
+# Solid Automerge
 
 <a href="https://www.solidjs.com/"> <img alt="" src=.assets/solid.png width=22
 height=22> Solid </a> primitives for <a

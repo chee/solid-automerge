@@ -5,5 +5,5 @@
 	"entryPoints": ["src/index.ts"],
 	"plugin": ["typedoc-material-theme"],
 	"themeColor": "#ff2a50",
-	"name": "automerge repo solid primitives"
+	"name": "Solid Automerge"
 }
