@@ -44,7 +44,7 @@ export default function makeDocumentProjection<T>(handle: DocHandle<T>) {
 	})
 
 	function patch(payload: DocHandleChangePayload<T>) {
-		set(produce(autoproduce(payload.patches)))
+		set(produce(autoproduce(payload)))
 	}
 
 	function ondelete() {

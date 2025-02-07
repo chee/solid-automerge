@@ -141,6 +141,25 @@ describe("makeDocumentProjection", () => {
 		})
 	})
 
+	it.only("should be handle conflict well", async () => {
+		const {repo} = setup()
+		const handle1 = repo.create({a: true})
+		const promise = new Promise<void>(resolve => {
+			handle1.on("change", payload => {
+				console.log(payload.patches.map(p => p.action))
+				expect(payload.patches[0].action).toBe("conflict")
+				resolve()
+			})
+			const handle2 = repo.create({
+				a: {b: {c: {d: {e: {f: [1, 2, 3, {g: 4}]}}}}},
+			})
+			handle1.merge(handle2)
+		})
+
+		// expect(handle1.doc().a).toEqual(true)
+		return promise
+	})
+
 	it("should not clean up when it should not clean up", async () => {
 		const {handle} = setup()
 

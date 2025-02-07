@@ -1,4 +1,4 @@
-import type {Patch} from "@automerge/automerge-repo/slim"
+import type {DocHandleChangePayload} from "@automerge/automerge-repo/slim"
 import {apply, fromAutomerge} from "cabbages"
 
 /**
@@ -10,11 +10,10 @@ import {apply, fromAutomerge} from "cabbages"
  * [Solid
  * Stores](https://docs.solidjs.com/reference/store-utilities/create-store)
  */
-export default function autoproduce<T>(patches: Patch[]) {
+export default function autoproduce<T>(payload: DocHandleChangePayload<T>) {
 	return (doc: T) => {
-		for (let patch of patches) {
-			const [path, range, val] = fromAutomerge(patch)
-			apply(path, doc, range, val)
+		for (let patch of payload.patches) {
+			apply(doc, ...fromAutomerge(patch, payload))
 		}
 	}
 }
