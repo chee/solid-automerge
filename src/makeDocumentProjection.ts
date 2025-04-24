@@ -40,6 +40,7 @@ export default function makeDocumentProjection<T>(handle: DocHandle<T>) {
 		cleanup() {
 			handle.off("change", patch)
 			handle.off("delete", ondelete)
+			cache.delete(handle)
 		},
 	})
 
