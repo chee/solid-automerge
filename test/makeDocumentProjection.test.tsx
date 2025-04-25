@@ -248,6 +248,32 @@ describe("makeDocumentProjection", () => {
 
 		return Promise.all([arrayDotThree, projectZeroItemZeroTitle])
 	})
+
+	it("should remain reactive on an mount, unmount, and then remount of the same doc handle", async () => {
+		const {handle} = setup()
+
+		for (let i = 0; i < 2; ++i) {
+			const [doc, clean] = createRoot(c => [makeDocumentProjection(handle), c])
+			const lastRun = await testEffect<number>(done => {
+				createEffect((run: number = 0) => {
+					if (run == 0) {
+						expect(doc.key).toBe("value")
+						handle.change(doc => (doc.key = "hello world!"))
+					} else if (run == 1) {
+						expect(doc.key).toBe("hello world!")
+						handle.change(doc => (doc.key = "friday night!"))
+					} else if (run == 2) {
+						expect(doc.key).toBe("friday night!")
+						handle.change(doc => (doc.key = "value"))
+						done(run)
+					}
+					return run + 1
+				})
+			})
+			expect(lastRun).toBe(2);
+			clean()
+		}
+	})
 })
 
 interface ExampleDoc {
