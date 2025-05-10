@@ -27,7 +27,7 @@
 		}
 	},
 	"devDependencies": {
-		"@automerge/automerge-repo": "2.0.0-alpha.22",
+		"@automerge/automerge-repo": "2.0.0-beta.5",
 		"@solidjs/testing-library": "^0.8.9",
 		"@testing-library/jest-dom": "^6.5.0",
 		"@testing-library/user-event": "^14.5.2",
@@ -46,7 +46,7 @@
 		"vitest": "^2.1.1"
 	},
 	"peerDependencies": {
-		"@automerge/automerge-repo": "2.0.0-alpha.22",
+		"@automerge/automerge-repo": "2.0.0-beta.5",
 		"solid-js": "^1.9.4"
 	},
 	"dependencies": {
