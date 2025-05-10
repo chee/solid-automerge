@@ -38,10 +38,14 @@ export default function useDocHandle<T>(
 		if (options?.["~skipInitialValue"]) return undefined
 		const unwrappedURL = access(url)
 		if (!unwrappedURL) return undefined
-		const parsedURL = parseAutomergeUrl(unwrappedURL)
-		const existingHandle = repo.handles[parsedURL.documentId]
-		if (existingHandle?.isReady()) {
-			return existingHandle as DocHandle<T>
+		try {
+			const parsedURL = parseAutomergeUrl(unwrappedURL)
+			const existingHandle = repo.handles[parsedURL.documentId]
+			if (existingHandle?.isReady()) {
+				return existingHandle as DocHandle<T>
+			}
+		} catch (error) {
+			console.error("Error parsing URL:", error)
 		}
 	}
 
