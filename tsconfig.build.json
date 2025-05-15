@@ -8,13 +8,15 @@
 		"allowImportingTsExtensions": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
+		"isolatedDeclarations": true,
 		"strict": true,
 		"skipLibCheck": true,
 		"isolatedModules": true,
 		"outDir": "./out/",
 		"composite": true,
 		"pretty": true,
-		"rootDir": "./src"
+		"rootDir": "./src",
+		"rewriteRelativeImportExtensions": true
 	},
 	"include": ["src/**/*.ts"]
 }

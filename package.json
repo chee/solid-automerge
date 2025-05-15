@@ -1,12 +1,12 @@
 {
 	"name": "solid-automerge",
-	"version": "1.0.0-charlie.0",
+	"version": "1.0.0-charlie.1",
 	"description": "use automerge-repo in your solid app",
 	"type": "module",
 	"main": "out/index.js",
 	"scripts": {
 		"prepublish": "pnpm mk",
-		"mk": "swc src -d out --strip-leading-paths && tsc -p tsconfig.build.json && typedoc",
+		"mk": "node --experimental-strip-types ./mk.ts typedoc",
 		"build": "pnpm mk",
 		"test": "vitest run",
 		"w": "tsc -p tsconfig.build.json --watch"
@@ -28,19 +28,22 @@
 	},
 	"devDependencies": {
 		"@automerge/automerge-repo": "^2.0.0",
+		"@onyx/esbuild-plugin-rewrite-relative-import-extensions": "npm:@jsr/onyx__esbuild-plugin-rewrite-relative-import-extensions@^0.0.2",
 		"@solidjs/testing-library": "^0.8.9",
 		"@swc/cli": "^0.7.7",
 		"@testing-library/jest-dom": "^6.5.0",
 		"@testing-library/user-event": "^14.5.2",
+		"esbuild": "^0.25.4",
+		"esbuild-plugin-d.ts": "^1.3.1",
 		"eslint": "^9.11.0",
 		"eslint-plugin-solid": "^0.14.3",
 		"globals": "^15.9.0",
 		"jsdom": "^26.0.0",
 		"prettier": "^3.3.3",
 		"solid-js": "^1.9.4",
-		"typedoc": "^0.27.6",
+		"typedoc": "^0.28.4",
 		"typedoc-material-theme": "^1.3.0",
-		"typescript": "^5.6.2",
+		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.6.0",
 		"vite-plugin-solid": "^2.11.0",
 		"vite-plugin-wasm": "^3.4.1",
@@ -51,7 +54,8 @@
 	},
 	"dependencies": {
 		"@solid-primitives/utils": "^6.3.0",
-		"cabbages": "^0.2.4"
+		"cabbages": "^0.2.4",
+		"esbuild-isolated-dts": "^0.1.2"
 	},
 	"repository": {
 		"type": "git",
