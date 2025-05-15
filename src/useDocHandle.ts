@@ -1,7 +1,7 @@
 import {
-	parseAutomergeUrl,
 	type AutomergeUrl,
 	type DocHandle,
+	type DocumentId,
 	type HandleState,
 } from "@automerge/automerge-repo/slim"
 import {createEffect, createResource, useContext} from "solid-js"
@@ -39,8 +39,8 @@ export default function useDocHandle<T>(
 		const unwrappedURL = access(url)
 		if (!unwrappedURL) return undefined
 		try {
-			const parsedURL = parseAutomergeUrl(unwrappedURL)
-			const existingHandle = repo.handles[parsedURL.documentId]
+			const documentId = new URL(unwrappedURL).pathname as DocumentId
+			const existingHandle = repo.handles[documentId]
 			if (existingHandle?.isReady()) {
 				return existingHandle as DocHandle<T>
 			}

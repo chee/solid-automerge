@@ -13,7 +13,7 @@ import type {Accessor, Resource} from "solid-js"
  * get a fine-grained live view of a document, and its handle, from a URL.
  * @param url a function that returns a url
  */
-export default function useDoc<T>(
+export default function useDocument<T>(
 	url: MaybeAccessor<AutomergeUrl | undefined>,
 	options?: UseDocHandleOptions
 ): [Accessor<Doc<T> | undefined>, Resource<DocHandle<T> | undefined>] {

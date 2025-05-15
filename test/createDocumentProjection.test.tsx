@@ -1,6 +1,6 @@
 import {
-	PeerId,
 	Repo,
+	type PeerId,
 	type AutomergeUrl,
 	type DocHandle,
 } from "@automerge/automerge-repo"

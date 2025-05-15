@@ -1,4 +1,4 @@
-import {PeerId, Repo, type AutomergeUrl} from "@automerge/automerge-repo"
+import {type PeerId, Repo, type AutomergeUrl} from "@automerge/automerge-repo"
 import {render, renderHook, testEffect} from "@solidjs/testing-library"
 import {describe, expect, it, vi} from "vitest"
 import {RepoContext} from "../src/context.js"

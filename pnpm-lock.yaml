@@ -16,8 +16,8 @@ importers:
         version: 0.2.4
     devDependencies:
       '@automerge/automerge-repo':
-        specifier: 2.0.0-beta.5
-        version: 2.0.0-beta.5
+        specifier: ^2.0.0
+        version: 2.0.0
       '@solidjs/testing-library':
         specifier: ^0.8.9
         version: 0.8.9(solid-js@1.9.4)
@@ -79,8 +79,8 @@ packages:
   '@asamuzakjp/css-color@2.8.3':
     resolution: {integrity: sha512-GIc76d9UI1hCvOATjZPyHFmE5qhRccp3/zGfMPapK3jBi+yocEzp6BBB0UnfRYP9NP4FANqUZYb0hnfs3TM3hw==}
 
-  '@automerge/automerge-repo@2.0.0-beta.5':
-    resolution: {integrity: sha512-oV0ImkuONzWXyfFhI32wxd9L+Nhndf4579WfWlUkC+m+xpI3NXFCH2UFNPaJXErbD+PqpX1H7Ah8Qi5dfKXRsw==}
+  '@automerge/automerge-repo@2.0.0':
+    resolution: {integrity: sha512-c1VDrR6s8BE36m6xDcSC8f4ECccPcaK1E6q3vIlBHOEyyLvLQbFmlmFIZulaV//S0B0HW2lLSrK/2cFwQblQ+A==}
 
   '@automerge/automerge@2.2.8':
     resolution: {integrity: sha512-kP6Z9lIkNeIGe/jhF8SUQAgUMwVjtXCBL0eZEgQGCoWvPNTPcg8fnQco28XkYBrfkkuqiEUAbdHhJmSp0y79ug==}
@@ -1733,7 +1733,7 @@ snapshots:
       '@csstools/css-tokenizer': 3.0.3
       lru-cache: 10.4.3
 
-  '@automerge/automerge-repo@2.0.0-beta.5':
+  '@automerge/automerge-repo@2.0.0':
     dependencies:
       '@automerge/automerge': 2.2.8
       bs58check: 3.0.1

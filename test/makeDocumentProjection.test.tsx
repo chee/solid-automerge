@@ -1,4 +1,4 @@
-import {PeerId, Repo, type DocHandle} from "@automerge/automerge-repo"
+import {type PeerId, Repo, type DocHandle} from "@automerge/automerge-repo"
 import {renderHook, testEffect} from "@solidjs/testing-library"
 import {describe, expect, it, vi} from "vitest"
 import {
@@ -270,7 +270,7 @@ describe("makeDocumentProjection", () => {
 					return run + 1
 				})
 			})
-			expect(lastRun).toBe(2);
+			expect(lastRun).toBe(2)
 			clean()
 		}
 	})

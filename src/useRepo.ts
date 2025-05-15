@@ -1,4 +1,4 @@
-import {Repo} from "@automerge/automerge-repo/slim"
+import type {Repo} from "@automerge/automerge-repo/slim"
 import {RepoContext} from "./context.js"
 import {useContext} from "solid-js"
 

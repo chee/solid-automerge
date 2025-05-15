@@ -1,5 +1,9 @@
 import {onCleanup} from "solid-js"
-import {Doc, DocHandle, DocHandleChangePayload} from "@automerge/automerge-repo"
+import type {
+	Doc,
+	DocHandle,
+	DocHandleChangePayload,
+} from "@automerge/automerge-repo"
 import autoproduce from "./autoproduce.js"
 import {createStore, produce, reconcile, type Store} from "solid-js/store"
 
