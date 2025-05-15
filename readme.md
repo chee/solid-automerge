@@ -5,17 +5,16 @@ height=22> Solid </a> primitives for <a
 href="https://automerge.org/docs/repositories/"> <img alt=""
 src=.assets/automerge.png width=22 height=22>Automerge</a> .
 
-> [!note]
->
-> This library targets `@automerge/automerge-repo@2` which is currently in
-> Alpha
->
-> Changes adapting to breaking changes will be reflected as patch bumps in this
-> library, until `@automerge/automerge-repo@2` is stable.
+```sh
+pnpm add solidjs @automerge/automerge-repo
+pnpm add solid-automerge
+```
+
+or, say:
 
 ```sh
-pnpm add solidjs @automerge/automerge-repo@next
-pnpm add solid-automerge
+deno add --npm solidjs @automerge/vanillajs
+deno add jsr:@chee/solid-automerge
 ```
 
 ## useDocument ✨
