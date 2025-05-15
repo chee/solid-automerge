@@ -1,5 +1,5 @@
 import type {Repo} from "@automerge/automerge-repo/slim"
-import {RepoContext} from "./context.js"
+import {RepoContext} from "./context.ts"
 import {useContext} from "solid-js"
 
 /** grab the repo from the {@link RepoContext} */

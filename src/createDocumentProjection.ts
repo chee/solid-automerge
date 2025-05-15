@@ -1,6 +1,6 @@
 import {createMemo, type Accessor} from "solid-js"
 import {DocHandle, type Doc} from "@automerge/automerge-repo"
-import makeDocumentProjection from "./makeDocumentProjection.js"
+import makeDocumentProjection from "./makeDocumentProjection.ts"
 import {access} from "@solid-primitives/utils"
 
 /**
@@ -11,7 +11,7 @@ import {access} from "@solid-primitives/utils"
  */
 export default function createDocumentProjection<T>(
 	handle: Accessor<DocHandle<T> | undefined>
-) {
+): Accessor<Doc<T> | undefined> {
 	const projection = createMemo<Doc<T> | undefined>(
 		() => access(handle) && makeDocumentProjection<T>(access(handle)!)
 	)

@@ -1,12 +1,12 @@
 {
 	"name": "solid-automerge",
-	"version": "1.0.0-beta.8",
+	"version": "1.0.0-charlie.0",
 	"description": "use automerge-repo in your solid app",
 	"type": "module",
 	"main": "out/index.js",
 	"scripts": {
 		"prepublish": "pnpm mk",
-		"mk": "tsc -p tsconfig.build.json && typedoc",
+		"mk": "swc src -d out --strip-leading-paths && tsc -p tsconfig.build.json && typedoc",
 		"build": "pnpm mk",
 		"test": "vitest run",
 		"w": "tsc -p tsconfig.build.json --watch"
@@ -29,6 +29,7 @@
 	"devDependencies": {
 		"@automerge/automerge-repo": "^2.0.0",
 		"@solidjs/testing-library": "^0.8.9",
+		"@swc/cli": "^0.7.7",
 		"@testing-library/jest-dom": "^6.5.0",
 		"@testing-library/user-event": "^14.5.2",
 		"eslint": "^9.11.0",

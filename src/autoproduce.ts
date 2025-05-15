@@ -11,7 +11,9 @@ import {apply, fromAutomerge} from "cabbages"
  * [Solid
  * Stores](https://docs.solidjs.com/reference/store-utilities/create-store)
  */
-export default function autoproduce<T>(payload: DocHandleChangePayload<T>) {
+export default function autoproduce<T>(
+	payload: DocHandleChangePayload<T>
+): (doc: T) => void {
 	return (doc: T) => {
 		for (let patch of payload.patches) {
 			apply(doc, ...fromAutomerge(patch, payload))

@@ -3,10 +3,10 @@ import {
 	type Doc,
 	type DocHandle,
 } from "@automerge/automerge-repo"
-import createDocumentProjection from "./createDocumentProjection.js"
+import createDocumentProjection from "./createDocumentProjection.ts"
 import type {MaybeAccessor} from "@solid-primitives/utils"
-import useDocHandle from "./useDocHandle.js"
-import type {UseDocHandleOptions} from "./types.js"
+import useDocHandle from "./useDocHandle.ts"
+import type {UseDocHandleOptions} from "./types.ts"
 import type {Accessor, Resource} from "solid-js"
 
 /**

@@ -1,0 +1,5 @@
+{
+	"name": "@chee/solid-automerge",
+	"version": "1.0.0-charlie.0",
+	"exports": "./src/index.ts"
+}
