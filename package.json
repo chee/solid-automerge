@@ -6,7 +6,7 @@
 	"main": "out/index.js",
 	"scripts": {
 		"prepublish": "pnpm mk",
-		"mk": "node --experimental-strip-types ./mk.ts typedoc",
+		"mk": "tsx ./mk.ts typedoc",
 		"build": "pnpm mk",
 		"test": "vitest run",
 		"w": "tsc -p tsconfig.build.json --watch"
@@ -55,7 +55,8 @@
 	"dependencies": {
 		"@solid-primitives/utils": "^6.3.0",
 		"cabbages": "^0.2.4",
-		"esbuild-isolated-dts": "^0.1.2"
+		"esbuild-isolated-dts": "^0.1.2",
+		"tsx": "^4.19.4"
 	},
 	"repository": {
 		"type": "git",
