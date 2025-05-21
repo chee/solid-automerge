@@ -1,7 +1,6 @@
 {
 	"extends": "./tsconfig.base.json",
 	"compilerOptions": {
-		"outFile": "./out/index.js"
-	},
-	"include": ["src/*.ts"]
+		"outDir": "./out/"
+	}
 }

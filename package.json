@@ -6,10 +6,9 @@
 	"main": "out/index.js",
 	"scripts": {
 		"prepublish": "pnpm mk",
-		"mk": "node --experimental-strip-types ./mk.ts typedoc",
+		"mk": "node --experimental-strip-types ./mk.ts && pnpm tsc -p tsconfig.build.json && typedoc --emit docs",
 		"build": "pnpm mk",
-		"test": "vitest run",
-		"w": "tsc -p tsconfig.build.json --watch"
+		"test": "vitest run"
 	},
 	"keywords": [
 		"solidjs",
@@ -26,20 +25,26 @@
 			"import": "./out/index.js"
 		}
 	},
+	"files": [
+		"out",
+		"README.md",
+		"LICENSE"
+	],
 	"devDependencies": {
 		"@automerge/automerge-repo": "^2.0.0",
 		"@onyx/esbuild-plugin-rewrite-relative-import-extensions": "npm:@jsr/onyx__esbuild-plugin-rewrite-relative-import-extensions@^0.0.2",
 		"@solidjs/testing-library": "^0.8.9",
 		"@testing-library/jest-dom": "^6.5.0",
 		"@testing-library/user-event": "^14.5.2",
-		"esbuild": "^0.25.4",
-		"eslint": "^9.11.0",
+		"esbuild": "^0.21.5",
 		"esbuild-isolated-dts": "^0.1.2",
+		"eslint": "^9.11.0",
 		"eslint-plugin-solid": "^0.14.3",
 		"globals": "^15.9.0",
 		"jsdom": "^26.0.0",
 		"prettier": "^3.3.3",
 		"solid-js": "^1.9.4",
+		"tsup": "^8.5.0",
 		"typedoc": "^0.28.4",
 		"typedoc-material-theme": "^1.3.0",
 		"typescript": "^5.8.3",
@@ -53,7 +58,8 @@
 	},
 	"dependencies": {
 		"@solid-primitives/utils": "^6.3.0",
-		"cabbages": "^0.2.4"
+		"cabbages": "^0.2.4",
+		"esbuild-plugin-d.ts": "^1.3.1"
 	},
 	"repository": {
 		"type": "git",
