@@ -4,6 +4,7 @@
 	"description": "use automerge-repo in your solid app",
 	"type": "module",
 	"main": "out/index.js",
+	"types": "./out/index.d.ts",
 	"scripts": {
 		"prepublish": "pnpm mk",
 		"mk": "rm -rf ./out ./docs; node --experimental-strip-types ./mk.ts && typedoc",
