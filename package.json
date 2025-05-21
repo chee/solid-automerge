@@ -26,9 +26,8 @@
 		}
 	},
 	"files": [
-		"out/*.ts",
-		"out/*.js",
-		"out/*.map",
+		"out",
+		"src",
 		"README.md",
 		"LICENSE"
 	],
