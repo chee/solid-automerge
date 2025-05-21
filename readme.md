@@ -5,6 +5,9 @@ height=22> Solid </a> primitives for <a
 href="https://automerge.org/docs/repositories/"> <img alt=""
 src=.assets/automerge.png width=22 height=22>Automerge</a> .
 
+> [!note]
+> <300 bytes minified+gzipped
+
 ```sh
 pnpm add solidjs @automerge/automerge-repo
 pnpm add solid-automerge
