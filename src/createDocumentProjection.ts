@@ -1,5 +1,5 @@
 import {createMemo, type Accessor} from "solid-js"
-import {DocHandle, type Doc} from "@automerge/automerge-repo"
+import {type DocHandle, type Doc} from "@automerge/automerge-repo"
 import makeDocumentProjection from "./makeDocumentProjection.ts"
 import {access} from "@solid-primitives/utils"
 
