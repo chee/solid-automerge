@@ -6,7 +6,7 @@
 	"main": "out/index.js",
 	"scripts": {
 		"prepublish": "pnpm mk",
-		"mk": "rm -rf ./out ./docs; node --experimental-strip-types ./mk.ts && rm -f tsconfig.build.tsbuildinfo && pnpm tsc -p tsconfig.build.json && for file in out/*.d.ts; do cp $file ${file%%.d.ts}.ts.d.ts; done && typedoc --emit docs",
+		"mk": "rm -rf ./out ./docs; node --experimental-strip-types ./mk.ts && typedoc --emit docs && cp _index.d.ts ./out/index.d.ts",
 		"build": "pnpm mk",
 		"test": "vitest run"
 	},
