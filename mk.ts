@@ -1,12 +1,12 @@
 import {build} from "esbuild"
+import {isoldatedDtsPlugin} from "esbuild-isolated-dts"
+import {rewriteRelativeImportExtensionsPlugin} from "@onyx/esbuild-plugin-rewrite-relative-import-extensions"
 
 build({
-	entryPoints: ["./src/index.ts"],
+	entryPoints: ["./src/*.ts"],
 	outdir: "./out",
-	minify: false,
 	sourcemap: true,
-	bundle: true,
 	target: ["esnext"],
 	tsconfig: "./tsconfig.build.json",
-	external: ["cabbages", "solid-js", "@solid-primitives/utils"],
+	plugins: [isoldatedDtsPlugin({}), rewriteRelativeImportExtensionsPlugin()],
 })
