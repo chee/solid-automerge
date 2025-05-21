@@ -3,7 +3,7 @@ import type {
 	Doc,
 	DocHandle,
 	DocHandleChangePayload,
-} from "@automerge/automerge-repo"
+} from "@automerge/automerge-repo/slim"
 import autoproduce from "./autoproduce.ts"
 import {createStore, produce, reconcile, type Store} from "solid-js/store"
 
