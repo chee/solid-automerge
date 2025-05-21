@@ -1,8 +1,8 @@
-import {
-	type AutomergeUrl,
-	type DocHandle,
-	type DocumentId,
-	type HandleState,
+import type {
+	AutomergeUrl,
+	DocHandle,
+	DocumentId,
+	HandleState,
 } from "@automerge/automerge-repo/slim"
 import {createEffect, createResource, useContext, type Resource} from "solid-js"
 import {access, type MaybeAccessor} from "@solid-primitives/utils"

@@ -1,8 +1,4 @@
-import {
-	type AutomergeUrl,
-	type Doc,
-	type DocHandle,
-} from "@automerge/automerge-repo"
+import type {AutomergeUrl, Doc, DocHandle} from "@automerge/automerge-repo"
 import createDocumentProjection from "./createDocumentProjection.ts"
 import type {MaybeAccessor} from "@solid-primitives/utils"
 import useDocHandle from "./useDocHandle.ts"
