@@ -6,6 +6,5 @@
 	"plugin": ["typedoc-material-theme"],
 	"themeColor": "#ff2a50",
 	"name": "Solid Automerge",
-	"out": "./docs",
-	"tsconfig": "tsconfig.doc.json"
+	"out": "./docs"
 }
