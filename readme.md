@@ -1,3 +1,18 @@
+> [!important]
+> omg
+
+> [!caution]
+> This is now situated warm and cozy as part of the Automerge Repo monorepo:
+>
+> [@automerge/automerge-repo-solid-primitives](https://github.com/automerge/automerge-repo/tree/main/packages/automerge-repo-solid-primitives)
+
+> [!tip]
+> You can `pnpm add solid-automerge@npm:@automerge/automerge-repo-solid-primitives` and
+> carry on like nothing happened.
+
+> [!important]
+> 🎉 omg 🎉
+
 # Solid Automerge
 
 <a href="https://www.solidjs.com/"> <img alt="" src=.assets/solid.png width=22
@@ -6,15 +21,7 @@ href="https://automerge.org/docs/repositories/"> <img alt=""
 src=.assets/automerge.png width=22 height=22>Automerge</a> .
 
 ```sh
-pnpm add solidjs @automerge/automerge-repo
-pnpm add solid-automerge
-```
-
-or, say:
-
-```sh
-deno add --npm solidjs @automerge/vanillajs
-deno add jsr:@chee/solid-automerge
+pnpm add solid-js @automerge/automerge-repo solid-automerge
 ```
 
 ## useDocument ✨
