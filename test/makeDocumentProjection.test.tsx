@@ -275,6 +275,35 @@ describe("makeDocumentProjection", () => {
 		}
 	})
 
+	it("should not share state between projections of a handle and its clone", () => {
+		const {repo, handle} = setup()
+		const clone = repo.clone(handle)
+
+		return createRoot(dispose => {
+			const source = makeDocumentProjection<ExampleDoc>(handle)
+			const cloned = makeDocumentProjection<ExampleDoc>(clone)
+
+			expect(source.array).not.toBe(cloned.array)
+
+			const done = testEffect(done => {
+				createEffect((run: number = 0) => {
+					if (run == 0) {
+						expect(source.array).toEqual([1, 2, 3])
+						expect(cloned.array).toEqual([1, 2, 3])
+						clone.change(doc => doc.array.push(4))
+					} else if (run == 1) {
+						expect(cloned.array).toEqual([1, 2, 3, 4])
+						expect(source.array).toEqual([1, 2, 3])
+						done()
+					}
+					return run + 1
+				})
+			})
+
+			return done.finally(dispose)
+		})
+	})
+
 	it("reconciles from the new scoped value when scopeReplaced fires", async () => {
 		const {handle} = setup()
 		type Project = ExampleDoc["projects"][number]
