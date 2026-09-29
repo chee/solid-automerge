@@ -25,8 +25,8 @@ const views = new WeakMap<object, {root: Root; path: Path}>()
  * reading from it is reading from the projection: fine-grained and live.
  * writing to it makes an automerge change on the handle, which comes back to
  * the projection as patches. every assignment, `delete`, `push`, `splice`
- * etc is its own change; for several edits in one change, use the change
- * function.
+ * etc is its own change; for several edits in one change, use
+ * `handle.change`.
  *
  * ```ts
  * const todo = mutable(doc)
@@ -256,7 +256,7 @@ type ListMethod = (
 function unsupported(method: string): ListMethod {
 	return () => () => {
 		throw new TypeError(
-			`automerge lists can't ${method}. use the change function instead`
+			`automerge lists can't ${method}. use handle.change instead`
 		)
 	}
 }

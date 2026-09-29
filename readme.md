@@ -13,21 +13,23 @@ pnpm add solid-js@next @automerge/automerge-repo solid-automerge
 
 ## useDocument ✨
 
-Get a fine-grained live view of an automerge document from its URL, a function
-to change it, and its handle.
+Get a fine-grained live view of an automerge document, and its handle, from
+its URL.
+
+Returns `[doc, handle]`.
 
 ```ts
 useDocument<T>(
 	url: AutomergeUrl | (() => AutomergeUrl | undefined),
 	options?: {repo?: Repo}
-): [doc: Doc<T>, change: (fn: ChangeFn<T>, options?) => void, handle: Accessor<DocHandle<T> | undefined>]
+): [doc: Doc<T>, handle: Accessor<DocHandle<T> | undefined>]
 ```
 
 ```tsx
 // example
-const [doc, change] = useDocument<{count: number}>(() => props.url)
+const [doc, handle] = useDocument<{count: number}>(() => props.url)
 
-const inc = () => change(doc => doc.count++)
+const inc = () => handle()?.change(doc => doc.count++)
 return <button onClick={inc}>{doc.count}</button>
 ```
 
@@ -43,10 +45,7 @@ time.
 - while the document is loading, reading `doc` suspends. put a `<Loading>`
   around it
 - if the document can't be found, reading it errors to the nearest `<Errored>`
-- when there's no url, `doc` is empty
-- `change` calls
-  [`handle.change`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.DocHandle.html#change)
-  on whichever document `doc` is showing. it does nothing when there isn't one
+- when there's no url, `doc` is empty and `handle()` is `undefined`
 
 The `{repo}` option can be left out if you are using [RepoContext](#context).
 
@@ -56,7 +55,7 @@ Like `useDocument`, but you can assign to the document, and the assignment
 becomes an automerge change.
 
 ```tsx
-const [todo, change] = useMutableDocument<Todo>(() => props.url)
+const [todo, handle] = useMutableDocument<Todo>(() => props.url)
 
 return (
 	<input
@@ -69,8 +68,8 @@ return (
 
 Assignment, `delete`, `push`, `pop`, `shift`, `unshift`, `splice`, `fill`, and
 automerge's own `insertAt` and `deleteAt` all work, anywhere in the document.
-Each one is its own change: to make several edits in one change, use the
-`change` function. Automerge lists can't `sort`, `reverse` or `copyWithin`, so
+Each one is its own change: to make several edits in one change, use
+`handle()?.change`. Automerge lists can't `sort`, `reverse` or `copyWithin`, so
 those throw.
 
 Nested objects are views of whatever is at their path right now, so
@@ -119,9 +118,9 @@ document itself has at `readme` is hidden while something is mounted there.
 `mount` returns a function that unmounts it again, and it's unmounted when the
 owner that called `mount` is cleaned up.
 
-The folder's `change` function still only changes the folder. To change the
-readme, use its own handle or change function, or write through a
-[`mutable`](#mutable) folder: writes under `readme` go to the readme document.
+Changing the folder through its handle only changes the folder. To change the
+readme, use the readme's own handle, or write through a [`mutable`](#mutable)
+folder: writes under `readme` go to the readme document.
 
 If you're using TypeScript, include the mounted key in the parent's type (e.g.
 `useDocument<Folder & {readme: Readme}>`).
@@ -193,21 +192,20 @@ their identity, so `<For>` moves their rows instead of remaking them.
 ## useDocSignal
 
 A light coarse-grained primitive when you care only _that_ a doc has changed,
-and not _how_. Returns `[doc, change, handle]`, like `useDocument`, but `doc`
-is an accessor of the whole (immutable) automerge doc.
+and not _how_. Returns `[doc, handle]`.
 
 ```ts
 useDocSignal<T>(
 	url: AutomergeUrl | (() => AutomergeUrl | undefined),
 	options?: {repo: Repo}
-): [doc: Accessor<Doc<T> | undefined>, change: (fn: ChangeFn<T>, options?) => void, handle: Accessor<DocHandle<T> | undefined>]
+): [doc: Accessor<Doc<T> | undefined>, handle: Accessor<DocHandle<T> | undefined>]
 ```
 
 ```tsx
 // example
-const [doc, change] = useDocSignal<{count: number}>(() => props.url)
+const [doc, handle] = useDocSignal<{count: number}>(() => props.url)
 
-const inc = () => change(doc => doc.count++)
+const inc = () => handle()?.change(doc => doc.count++)
 return <button onClick={inc}>{doc()?.count}</button>
 ```
 
@@ -314,8 +312,6 @@ const repo = useRepo()
 
 - document projections are stores now, not accessors: `doc()?.title` becomes
   `doc.title`
-- `useDocument` returns `[doc, change, handle]` (it was `[doc, handle]`), and
-  so does `useDocSignal`
 - `useDocHandle` returns a memo instead of a resource. put a `<Loading>` where
   you had a `<Suspense>`, and read `handle()` where you read `handle.latest`
 - `createDocumentProjection` returns the store itself, not an accessor of one

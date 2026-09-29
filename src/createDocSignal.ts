@@ -12,23 +12,11 @@ import type {HandleFor} from "./types.ts"
 export default function createDocSignal<T>(
 	handle: Accessor<HandleFor<T> | undefined>
 ): Accessor<Doc<T> | undefined> {
-	return docSignal(handle as Accessor<DocHandle<T> | undefined>)[0]
-}
-
-/**
- * a doc signal, and a function that returns the handle it's showing.
- * @internal
- */
-export function docSignal<T>(
-	handle: Accessor<DocHandle<T> | undefined>
-): [Accessor<Doc<T> | undefined>, () => DocHandle<T> | undefined] {
-	let current: DocHandle<T> | undefined
-	const doc = createMemo<Doc<T> | undefined>(
+	return createMemo<Doc<T> | undefined>(
 		() => {
-			const h = (current = handle())
+			const h = handle() as DocHandle<T> | undefined
 			return h && docStream(h)
 		},
 		{ssrSource: "hybrid"}
 	)
-	return [doc, () => current]
 }

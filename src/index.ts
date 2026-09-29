@@ -2,7 +2,6 @@
 // built .d.ts files point at .js files
 import type {MaybeAccessor} from "./access.ts"
 import type {
-	DocumentChangeFunction,
 	DocumentProjectionOptions,
 	HandleFor,
 	UseDocHandleOptions,
@@ -24,7 +23,6 @@ export {default as useRepo} from "./useRepo.ts"
 export {RepoContext} from "./context.ts"
 export type {
 	MaybeAccessor,
-	DocumentChangeFunction,
 	DocumentProjectionOptions,
 	HandleFor,
 	UseDocHandleOptions,

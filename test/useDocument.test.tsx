@@ -6,51 +6,49 @@ import useDocument from "../src/useDocument.ts"
 import {root, settle, setup, slow, track, type ExampleDoc} from "./helpers.tsx"
 
 describe("useDocument", () => {
-	it("should give [doc, change, handle]", () => {
+	it("should give [doc, handle]", () => {
 		const {repo, handle} = setup()
-		const [[doc, change, result], dispose] = root(() =>
+		const [[doc, result], dispose] = root(() =>
 			useDocument<ExampleDoc>(handle.url, {repo})
 		)
 		expect(doc.key).toBe("value")
-		expect(typeof change).toBe("function")
 		expect(result()).toBe(handle)
 		dispose()
 	})
 
-	it("should change the document with change", () => {
+	it("should notify on a property change", () => {
 		const {repo, handle} = setup()
-		const [[[doc, change], keys], dispose] = root(() => {
+		const [[[doc, result], keys], dispose] = root(() => {
 			const result = useDocument<ExampleDoc>(handle.url, {repo})
 			return [result, track(() => result[0].key)] as const
 		})
 		flush()
-		change(doc => (doc.key = "hello world!"))
+		result()?.change(doc => (doc.key = "hello world!"))
 		flush()
-		expect(handle.doc().key).toBe("hello world!")
 		expect(doc.key).toBe("hello world!")
-		change(doc => doc.array.push(4), {message: "four"})
+		result()?.change(doc => doc.array.push(4))
 		flush()
 		expect(snapshot(doc.array)).toEqual([1, 2, 3, 4])
 		expect(keys).toEqual(["value", "hello world!"])
 		dispose()
 	})
 
-	it("should do nothing with change when there's no document", () => {
+	it("should be empty when there's no url", () => {
 		const {repo} = setup()
-		const [[doc, change], dispose] = root(() =>
+		const [[doc, handle], dispose] = root(() =>
 			useDocument<ExampleDoc>(undefined, {repo})
 		)
-		expect(() => change(doc => (doc.key = "nowhere"))).not.toThrow()
 		expect(doc.key).toBe(undefined)
+		expect(handle()).toBe(undefined)
 		dispose()
 	})
 
-	it("should follow the url, and change whichever document it's showing", () => {
+	it("should follow the url", () => {
 		const {repo, create} = setup()
 		const one = create({key: "one"})
 		const two = create({key: "two"})
 		const [url, setURL] = createSignal<AutomergeUrl | undefined>(one.url)
-		const [[doc, change, handle], dispose] = root(() =>
+		const [[doc, handle], dispose] = root(() =>
 			useDocument<ExampleDoc>(url, {repo})
 		)
 		expect(doc.key).toBe("one")
@@ -58,25 +56,25 @@ describe("useDocument", () => {
 		flush()
 		expect(doc.key).toBe("two")
 		expect(handle()).toBe(two)
-		change(doc => (doc.key = "two changed"))
+		handle()?.change(doc => (doc.key = "two changed"))
+		one.change(doc => (doc.key = "one changed"))
 		flush()
-		expect(two.doc().key).toBe("two changed")
-		expect(one.doc().key).toBe("one")
 		expect(doc.key).toBe("two changed")
 		setURL(undefined)
 		flush()
 		expect(snapshot(doc)).toEqual({})
+		expect(handle()).toBe(undefined)
 		dispose()
 	})
 
 	it("should not apply patches twice for two of the same url", () => {
 		const {repo, handle} = setup()
-		const [[[one, change], [two]], dispose] = root(() => [
+		const [[[one], [two]], dispose] = root(() => [
 			useDocument<ExampleDoc>(handle.url, {repo}),
 			useDocument<ExampleDoc>(handle.url, {repo}),
 		])
-		change(doc => doc.array.push(4))
-		change(doc => doc.array.push(5))
+		handle.change(doc => doc.array.push(4))
+		handle.change(doc => doc.array.push(5))
 		flush()
 		expect(snapshot(one.array)).toEqual([1, 2, 3, 4, 5])
 		expect(snapshot(two.array)).toEqual([1, 2, 3, 4, 5])
@@ -91,18 +89,16 @@ describe("useDocument", () => {
 			return <li>{props.title}</li>
 		}
 		function Todos(props: {url: AutomergeUrl}) {
-			const [doc, change] = useDocument<ExampleDoc>(() => props.url)
+			const [doc, handle] = useDocument<ExampleDoc>(() => props.url)
+			const add = () =>
+				handle()?.change(doc => doc.hellos.unshift({hello: "hi"}))
 			return (
 				<>
 					<h1>{doc.key}</h1>
 					<ul>
 						<For each={doc.hellos}>{hello => <Item title={hello.hello} />}</For>
 					</ul>
-					<button
-						onClick={() => change(doc => doc.hellos.unshift({hello: "hi"}))}
-					>
-						add
-					</button>
+					<button onClick={add}>add</button>
 				</>
 			)
 		}

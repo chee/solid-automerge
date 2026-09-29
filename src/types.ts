@@ -32,12 +32,3 @@ export interface DocumentProjectionOptions {
 
 export interface UseDocumentOptions
 	extends UseDocHandleOptions, DocumentProjectionOptions {}
-
-/**
- * make a change to a document. takes the same arguments as
- * [DocHandle#change](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.DocHandle.html#change)
- */
-export type DocumentChangeFunction<T> = (
-	change: Parameters<DocHandle<T>["change"]>[0],
-	options?: Parameters<DocHandle<T>["change"]>[1]
-) => void

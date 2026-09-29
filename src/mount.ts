@@ -19,7 +19,7 @@ export type Mountable =
  * same store (`snapshot`, `deep` and `<For>` all see it). whatever the parent
  * document itself has at `key` is hidden while something is mounted there.
  *
- * the parent's own change function still only changes the parent. to change
+ * changing the parent through its handle only changes the parent. to change
  * the mounted document, use its own handle, or write through a {@link mutable}
  * view of the parent, which sends writes under `key` to the mounted document.
  *

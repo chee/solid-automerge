@@ -58,16 +58,15 @@ describe("createDocSignal", () => {
 })
 
 describe("useDocSignal", () => {
-	it("should give [doc, change, handle]", async () => {
+	it("should give [doc, handle]", async () => {
 		const {repo, handle} = setup()
-		const [[doc, change, result], dispose] = root(() =>
+		const [[doc, result], dispose] = root(() =>
 			useDocSignal<ExampleDoc>(handle.url, {repo})
 		)
 		expect(doc()?.key).toBe("value")
 		expect(result()).toBe(handle)
-		change(doc => (doc.key = "changed"))
+		result()?.change(doc => (doc.key = "changed"))
 		await settle()
-		expect(handle.doc().key).toBe("changed")
 		expect(doc()?.key).toBe("changed")
 		dispose()
 	})
@@ -76,15 +75,15 @@ describe("useDocSignal", () => {
 		const {repo, create} = setup()
 		const one = create({key: "one"})
 		const [url, setURL] = createSignal<AutomergeUrl>()
-		const [[doc, change], dispose] = root(() =>
+		const [[doc, handle], dispose] = root(() =>
 			useDocSignal<ExampleDoc>(url, {repo})
 		)
 		expect(doc()).toBe(undefined)
-		expect(() => change(doc => (doc.key = "nowhere"))).not.toThrow()
+		expect(handle()).toBe(undefined)
 		setURL(one.url)
 		flush()
 		expect(doc()?.key).toBe("one")
-		change(doc => (doc.key = "one changed"))
+		handle()?.change(doc => (doc.key = "one changed"))
 		await settle()
 		expect(doc()?.key).toBe("one changed")
 		dispose()

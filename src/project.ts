@@ -2,10 +2,7 @@ import type {Doc, DocHandle} from "@automerge/automerge-repo/slim"
 import {createProjection, createSignal, type Accessor} from "solid-js"
 import {documentStream} from "./stream.ts"
 import {projections, type HandleAccessor, type Projection} from "./registry.ts"
-import type {
-	DocumentChangeFunction,
-	DocumentProjectionOptions,
-} from "./types.ts"
+import type {DocumentProjectionOptions} from "./types.ts"
 
 /**
  * the projection behind all the projections: a solid projection whose derive
@@ -47,16 +44,4 @@ export function project<T extends object>(
 	)
 	projections.set(doc, projection)
 	return doc as Doc<T>
-}
-
-/**
- * a change function for a projection, that changes whichever handle the
- * projection is showing right now. does nothing when there isn't one.
- * @internal
- */
-export function changer<T>(doc: object): DocumentChangeFunction<T> {
-	const projection = projections.get(doc)
-	return (change, options) => {
-		projection?.current?.change(change as any, options)
-	}
 }

@@ -187,14 +187,14 @@ describe("mutable", () => {
 })
 
 describe("useMutableDocument", () => {
-	it("should give [doc, change, handle]", () => {
+	it("should give [doc, handle]", () => {
 		const {repo, handle} = setup()
-		const [[doc, change, result], dispose] = root(() =>
+		const [[doc, result], dispose] = root(() =>
 			useMutableDocument<ExampleDoc>(handle.url, {repo})
 		)
 		expect(result()).toBe(handle)
 		doc.key = "mutated"
-		change(doc => doc.array.push(4))
+		result()?.change(doc => doc.array.push(4))
 		flush()
 		expect(handle.doc().key).toBe("mutated")
 		expect(snapshot(doc.array)).toEqual([1, 2, 3, 4])

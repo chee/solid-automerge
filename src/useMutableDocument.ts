@@ -3,7 +3,7 @@ import type {Accessor} from "solid-js"
 import type {MaybeAccessor} from "./access.ts"
 import useDocument from "./useDocument.ts"
 import mutable from "./mutable.ts"
-import type {DocumentChangeFunction, UseDocumentOptions} from "./types.ts"
+import type {UseDocumentOptions} from "./types.ts"
 
 /**
  * like {@link useDocument}, but the document is {@link mutable}: assign to it
@@ -21,16 +21,12 @@ import type {DocumentChangeFunction, UseDocumentOptions} from "./types.ts"
  * ```
  *
  * @param id a url (or a function that returns one)
- * @returns `[doc, change, handle]`
+ * @returns `[doc, handle]`
  */
 export default function useMutableDocument<T extends object>(
 	id: MaybeAccessor<AnyDocumentId | undefined>,
 	options?: UseDocumentOptions
-): [
-	doc: T,
-	change: DocumentChangeFunction<T>,
-	handle: Accessor<DocHandle<T> | undefined>,
-] {
-	const [doc, change, handle] = useDocument<T>(id, options)
-	return [mutable(doc as T), change, handle]
+): [doc: T, handle: Accessor<DocHandle<T> | undefined>] {
+	const [doc, handle] = useDocument<T>(id, options)
+	return [mutable(doc as T), handle]
 }
