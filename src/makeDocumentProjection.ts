@@ -1,81 +1,24 @@
-import {onCleanup} from "solid-js"
-import type {
-	Doc,
-	DocHandle,
-	DocHandleChangePayload,
-} from "@automerge/automerge-repo/slim"
-import autoproduce from "./autoproduce.ts"
-import {createStore, produce, reconcile, type Store} from "solid-js/store"
-
-const cache = new WeakMap<
-	DocHandle<unknown>,
-	{
-		refs: number
-		store: Store<Doc<unknown>>
-		cleanup(): void
-	}
->()
+import type {Doc, DocHandle} from "@automerge/automerge-repo/slim"
+import {project} from "./project.ts"
+import type {DocumentProjectionOptions, HandleFor} from "./types.ts"
 
 /**
- * make a fine-grained live view of a document from its handle.
+ * make a fine-grained live view of a document from its handle. just like
+ * {@link createDocumentProjection}, but without a reactive input.
+ *
+ * ```tsx
+ * const doc = makeDocumentProjection<{items: {title: string}[]}>(handle)
+ * // subscribes fine-grained to doc.items[1].title
+ * return <h1>{doc.items[1].title}</h1>
+ * ```
+ *
  * @param handle an Automerge
  * [DocHandle](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.DocHandle.html)
  */
 export default function makeDocumentProjection<T extends object>(
-	handle: DocHandle<T>
+	handle: HandleFor<T>,
+	options?: DocumentProjectionOptions
 ): Doc<T> {
-	onCleanup(() => {
-		const item = cache.get(handle)!
-		if (!item) return
-		if (!item.refs--) {
-			item.cleanup()
-		}
-	})
-
-	if (cache.has(handle)) {
-		const item = cache.get(handle)!
-		item.refs++
-		return item.store as Doc<T>
-	}
-
-	const [doc, set] = createStore<Doc<T>>(handle.doc()!)
-
-	cache.set(handle, {
-		refs: 0,
-		store: doc,
-		cleanup() {
-			handle.off("change", patch)
-			handle.off("delete", ondelete)
-			cache.delete(handle)
-		},
-	})
-
-	function patch(payload: DocHandleChangePayload<T>) {
-		// `scopeReplaced` means the change landed at or above this (sub-)handle's
-		// scope boundary, so it can't be expressed as in-scope patches. The
-		// payload still carries `doc` — the new value at the handle's path (the
-		// part of the store this scope points at) — so we reconcile against that
-		// instead of applying patches. `reconcile` structurally diffs it against
-		// the current store, so unchanged subtrees keep their identity and only
-		// the parts that actually changed notify. `doc` is undefined when the
-		// scope was removed entirely.
-		if (payload.scopeReplaced) {
-			set(reconcile((payload.doc ?? {}) as Doc<T>))
-			return
-		}
-		set(produce(autoproduce(payload)))
-	}
-
-	function ondelete() {
-		set(reconcile({} as Doc<T>))
-	}
-
-	handle.on("change", patch)
-	handle.on("delete", ondelete)
-
-	handle.whenReady().then(() => {
-		set(handle.doc()!)
-	})
-
-	return doc
+	const seed = (Array.isArray(handle.doc()) ? [] : {}) as T
+	return project<T>(() => handle as DocHandle<T>, seed, options)
 }

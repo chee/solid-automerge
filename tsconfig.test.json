@@ -1,11 +1,12 @@
 {
 	"compilerOptions": {
 		"jsx": "preserve",
-		"jsxImportSource": "solid-js",
+		"jsxImportSource": "@solidjs/web",
 		"types": ["@testing-library/jest-dom"],
 		"target": "ESNext",
 		"module": "ESNext",
 		"moduleResolution": "Bundler",
+		"allowImportingTsExtensions": true,
 		"declaration": true,
 		"declarationMap": true,
 		"esModuleInterop": true,

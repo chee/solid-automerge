@@ -1,411 +1,144 @@
-import {
-	Repo,
-	type PeerId,
-	type AutomergeUrl,
-	type DocHandle,
-} from "@automerge/automerge-repo"
-import {render, renderHook, testEffect} from "@solidjs/testing-library"
-import {describe, expect, it, vi} from "vitest"
-import {RepoContext} from "../src/context.js"
-import {
-	createEffect,
-	createSignal,
-	type Accessor,
-	type ParentComponent,
-} from "solid-js"
-import useDocHandle from "../src/useDocHandle.js"
-import createDocumentProjection from "../src/createDocumentProjection.js"
+import type {AutomergeUrl, DocHandle} from "@automerge/automerge-repo"
+import {describe, expect, it} from "vitest"
+import {createSignal, flush, Loading, snapshot} from "solid-js"
+import {render} from "@solidjs/testing-library"
+import createDocumentProjection from "../src/createDocumentProjection.ts"
+import useDocHandle from "../src/useDocHandle.ts"
+import {root, settle, setup, slow, track, type ExampleDoc} from "./helpers.tsx"
 
 describe("createDocumentProjection", () => {
-	function setup() {
-		const repo = new Repo({
-			peerId: "bob" as PeerId,
-		})
-
-		const create = () =>
-			repo.create<ExampleDoc>({
-				key: "value",
-				array: [1, 2, 3],
-				hellos: [{hello: "world"}, {hello: "hedgehog"}],
-				projects: [
-					{title: "one", items: [{title: "go shopping"}]},
-					{title: "two", items: []},
-				],
-			})
-
-		const handle = create()
-		const wrapper: ParentComponent = props => {
-			return (
-				<RepoContext.Provider value={repo}>
-					{props.children}
-				</RepoContext.Provider>
-			)
-		}
-
-		return {
-			repo,
-			handle,
-			wrapper,
-			create,
-		}
-	}
-
-	it("should notify on a property change", async () => {
+	it("should notify on a property change", () => {
 		const {handle} = setup()
-		const {result: doc, owner} = renderHook(
-			createDocumentProjection<ExampleDoc>,
-			{
-				initialProps: [() => handle],
-			}
-		)
-
-		const done = testEffect(done => {
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc()?.key).toBe("value")
-					handle.change(doc => (doc.key = "hello world!"))
-				} else if (run == 1) {
-					expect(doc()?.key).toBe("hello world!")
-					handle.change(doc => (doc.key = "friday night!"))
-				} else if (run == 2) {
-					expect(doc()?.key).toBe("friday night!")
-					done()
-				}
-				return run + 1
-			})
-		}, owner!)
-		return done
-	})
-
-	it("should not apply patches multiple times just because there are multiple projections", async () => {
-		const {handle} = setup()
-		const {result: one, owner: owner1} = renderHook(
-			createDocumentProjection<ExampleDoc>,
-			{
-				initialProps: [() => handle],
-			}
-		)
-		const {result: two, owner: owner2} = renderHook(
-			createDocumentProjection<ExampleDoc>,
-			{
-				initialProps: [() => handle],
-			}
-		)
-
-		const done2 = testEffect(done => {
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(two()?.array).toEqual([1, 2, 3])
-				} else if (run == 1) {
-					expect(two()?.array).toEqual([1, 2, 3, 4])
-				} else if (run == 2) {
-					expect(two()?.array).toEqual([1, 2, 3, 4, 5])
-					done()
-				}
-				return run + 1
-			})
-		}, owner2!)
-
-		const done1 = testEffect(done => {
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(one()?.array).toEqual([1, 2, 3])
-					handle.change(doc => doc.array.push(4))
-				} else if (run == 1) {
-					expect(one()?.array).toEqual([1, 2, 3, 4])
-					handle.change(doc => doc.array.push(5))
-				} else if (run == 2) {
-					expect(one()?.array).toEqual([1, 2, 3, 4, 5])
-					done()
-				}
-				return run + 1
-			})
-		}, owner1!)
-
-		return Promise.allSettled([done1, done2])
-	})
-
-	it("should work with useDocHandle", async () => {
-		const {
-			handle: {url: startingUrl},
-			wrapper,
-		} = setup()
-
-		const [url, setURL] = createSignal<AutomergeUrl>()
-
-		const {result: handle} = renderHook(useDocHandle<ExampleDoc>, {
-			initialProps: [url],
-			wrapper,
+		const [[doc, keys], dispose] = root(() => {
+			const doc = createDocumentProjection<ExampleDoc>(() => handle)
+			return [doc, track(() => doc.key)] as const
 		})
-
-		const {result: doc, owner} = renderHook(
-			createDocumentProjection<ExampleDoc>,
-			{
-				initialProps: [handle],
-			}
-		)
-
-		const done = testEffect(done => {
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc()?.key).toBe(undefined)
-					setURL(startingUrl)
-				} else if (run == 1) {
-					expect(doc()?.key).toBe("value")
-					handle()?.change(doc => (doc.key = "hello world!"))
-				} else if (run == 2) {
-					expect(doc()?.key).toBe("hello world!")
-					handle()?.change(doc => (doc.key = "friday night!"))
-				} else if (run == 3) {
-					expect(doc()?.key).toBe("friday night!")
-					done()
-				}
-
-				return run + 1
-			})
-		}, owner!)
-
-		return done
+		flush()
+		handle.change(doc => (doc.key = "hello world!"))
+		flush()
+		expect(doc.key).toBe("hello world!")
+		expect(keys).toEqual(["value", "hello world!"])
+		dispose()
 	})
 
-	it("should work with a signal url", async () => {
-		const {create, wrapper} = setup()
-		const [url, setURL] = createSignal<AutomergeUrl>()
-		const {result: handle} = renderHook(useDocHandle<ExampleDoc>, {
-			initialProps: [url],
-			wrapper,
-		})
-		const {result: doc, owner} = renderHook(
-			createDocumentProjection<ExampleDoc>,
-			{
-				initialProps: [handle],
-				wrapper,
-			}
-		)
-		const done = testEffect(done => {
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc()?.key).toBe(undefined)
-					setURL(create().url)
-				} else if (run == 1) {
-					expect(doc()?.key).toBe("value")
-					handle()?.change(doc => (doc.key = "hello world!"))
-				} else if (run == 2) {
-					expect(doc()?.key).toBe("hello world!")
-					setURL(create().url)
-				} else if (run == 3) {
-					expect(doc()?.key).toBe("value")
-					handle()?.change(doc => (doc.key = "friday night!"))
-				} else if (run == 4) {
-					expect(doc()?.key).toBe("friday night!")
-					done()
-				}
-
-				return run + 1
-			})
-		}, owner!)
-		return done
-	})
-
-	it("should clear the store when the signal returns to nothing", async () => {
-		const {create, wrapper} = setup()
-		const [url, setURL] = createSignal<AutomergeUrl>()
-		const {result: handle} = renderHook(useDocHandle<ExampleDoc>, {
-			initialProps: [url],
-			wrapper,
-		})
-		const {result: doc, owner} = renderHook(
-			createDocumentProjection<ExampleDoc>,
-			{
-				initialProps: [handle],
-				wrapper,
-			}
-		)
-
-		const done = testEffect(done => {
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc()?.key).toBe(undefined)
-					setURL(create().url)
-				} else if (run == 1) {
-					expect(doc()?.key).toBe("value")
-					setURL(undefined)
-				} else if (run == 2) {
-					expect(doc()?.key).toBe(undefined)
-					setURL(create().url)
-				} else if (run == 3) {
-					expect(doc()?.key).toBe("value")
-					done()
-				}
-
-				return run + 1
-			})
-		}, owner!)
-		return done
-	})
-
-	it("should not return the wrong store when handle changes", async () => {
+	it("should be the same store for its whole life", () => {
 		const {create} = setup()
-
-		const h1 = create()
-		const h2 = create()
-
-		const [stableHandle] = createSignal(h1)
-		// initially handle2 is the same as handle1
-		const [changingHandle, setChangingHandle] = createSignal(h1)
-
-		const result = render(() => {
-			function Component(props: {
-				stableHandle: Accessor<DocHandle<ExampleDoc>>
-				changingHandle: Accessor<DocHandle<ExampleDoc>>
-			}) {
-				const stableDoc = createDocumentProjection<ExampleDoc>(
-					// eslint-disable-next-line solid/reactivity
-					props.stableHandle
-				)
-
-				const changingDoc = createDocumentProjection<ExampleDoc>(
-					// eslint-disable-next-line solid/reactivity
-					props.changingHandle
-				)
-
-				return (
-					<>
-						<div data-testid="key-stable">{stableDoc()?.key}</div>
-						<div data-testid="key-changing">{changingDoc()?.key}</div>
-					</>
-				)
-			}
-
-			return (
-				<Component
-					stableHandle={stableHandle}
-					changingHandle={changingHandle}
-				/>
-			)
+		const one = create({key: "one"})
+		const two = create({key: "two"})
+		const [handle, setHandle] = createSignal<DocHandle<ExampleDoc>>(one)
+		const [[doc, keys], dispose] = root(() => {
+			const doc = createDocumentProjection<ExampleDoc>(handle)
+			return [doc, track(() => doc.key)] as const
 		})
-
-		return testEffect(async done => {
-			h2.change(doc => (doc.key = "document-2"))
-			expect(result.getByTestId("key-stable").textContent).toBe("value")
-			expect(result.getByTestId("key-changing").textContent).toBe("value")
-
-			h1.change(doc => (doc.key = "hello"))
-			await new Promise<void>(setImmediate)
-
-			expect(result.getByTestId("key-stable").textContent).toBe("hello")
-			expect(result.getByTestId("key-changing").textContent).toBe("hello")
-
-			setChangingHandle(() => h2)
-
-			expect(result.getByTestId("key-stable").textContent).toBe("hello")
-			expect(result.getByTestId("key-changing").textContent).toBe("document-2")
-
-			setChangingHandle(() => h1)
-
-			expect(result.getByTestId("key-stable").textContent).toBe("hello")
-			expect(result.getByTestId("key-changing").textContent).toBe("hello")
-			done()
-
-			setChangingHandle(h2)
-			h2.change(doc => (doc.key = "world"))
-			await new Promise<void>(setImmediate)
-
-			expect(result.getByTestId("key-stable").textContent).toBe("hello")
-			expect(result.getByTestId("key-changing").textContent).toBe("world")
-			done()
-		})
+		const before = doc
+		flush()
+		setHandle(two)
+		flush()
+		expect(doc).toBe(before)
+		expect(doc.key).toBe("two")
+		expect(snapshot(doc)).toEqual(two.doc())
+		expect(keys).toEqual(["one", "two"])
+		dispose()
 	})
 
-	it("should work ok with a slow handle", async () => {
-		const {repo} = setup()
-
-		const originalFind = repo.find.bind(repo)
-		repo.find = vi.fn().mockImplementation(async (...args) => {
-			await new Promise(resolve => setTimeout(resolve, 900))
-			// @ts-expect-error this is ok
-			return originalFind(...args)
-		})
-
-		await testEffect(done => {
-			const handle = useDocHandle<{im: "slow"}>(
-				() => repo.create({im: "slow"}).url,
-				{repo}
-			)
-			const doc = createDocumentProjection(handle)
-
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc()?.im).toBe("slow")
-					done()
-				}
-				return run + 1
-			})
-		})
-
-		repo.find = originalFind
-	})
-
-	it("should not notify on properties nobody cares about", async () => {
-		const {handle} = setup()
-		let fn = vi.fn()
-
-		const {result: doc, owner} = renderHook(
-			createDocumentProjection<ExampleDoc>,
-			{
-				initialProps: [() => handle],
-			}
+	it("should follow the new handle and let go of the old one", () => {
+		const {create} = setup()
+		const one = create({key: "one"})
+		const two = create({key: "two"})
+		const listeners = one.listenerCount("change")
+		const [handle, setHandle] = createSignal<DocHandle<ExampleDoc>>(one)
+		const [doc, dispose] = root(() =>
+			createDocumentProjection<ExampleDoc>(handle)
 		)
-		testEffect(() => {
-			createEffect(() => {
-				fn(doc()?.projects[1].title)
-			})
+		expect(one.listenerCount("change")).toBe(listeners + 1)
+		setHandle(two)
+		flush()
+		expect(one.listenerCount("change")).toBe(listeners)
+		expect(two.listenerCount("change")).toBe(listeners + 1)
+		one.change(doc => (doc.key = "one changed"))
+		two.change(doc => (doc.key = "two changed"))
+		flush()
+		expect(doc.key).toBe("two changed")
+		setHandle(one)
+		flush()
+		expect(doc.key).toBe("one changed")
+		dispose()
+		expect(one.listenerCount("change")).toBe(listeners)
+		expect(two.listenerCount("change")).toBe(listeners)
+	})
+
+	it("should be empty when there's no handle", () => {
+		const {create} = setup()
+		const [handle, setHandle] = createSignal<DocHandle<ExampleDoc>>()
+		const [doc, dispose] = root(() =>
+			createDocumentProjection<ExampleDoc>(handle)
+		)
+		expect(doc.key).toBe(undefined)
+		expect(snapshot(doc)).toEqual({})
+		setHandle(create())
+		flush()
+		expect(doc.key).toBe("value")
+		setHandle(undefined)
+		flush()
+		expect(doc.key).toBe(undefined)
+		expect(snapshot(doc)).toEqual({})
+		setHandle(create({key: "again"}))
+		flush()
+		expect(doc.key).toBe("again")
+		dispose()
+	})
+
+	it("should only notify what's different when the handle changes", () => {
+		const {create} = setup()
+		const one = create()
+		const two = create({key: "two"})
+		const [handle, setHandle] = createSignal<DocHandle<ExampleDoc>>(one)
+		const [[keys, titles], dispose] = root(() => {
+			const doc = createDocumentProjection<ExampleDoc>(handle)
+			return [track(() => doc.key), track(() => doc.projects[1].title)]
 		})
-		const arrayDotThree = testEffect(done => {
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc()?.array[3]).toBeUndefined()
-					handle.change(doc => (doc.array[2] = 22))
-					handle.change(doc => (doc.key = "hello world!"))
-					handle.change(doc => (doc.array[1] = 11))
-					handle.change(doc => (doc.array[3] = 145))
-				} else if (run == 1) {
-					expect(doc()?.array[3]).toBe(145)
-					handle.change(doc => (doc.projects[0].title = "hello world!"))
-					handle.change(
-						doc => (doc.projects[0].items[0].title = "hello world!")
-					)
-					handle.change(doc => (doc.array[3] = 147))
-				} else if (run == 2) {
-					expect(doc()?.array[3]).toBe(147)
-					done()
-				}
-				return run + 1
-			})
-		}, owner!)
-		const projectZeroItemZeroTitle = testEffect(done => {
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc()?.projects[0].items[0].title).toBe("hello world!")
-					done()
-				}
-				return run + 1
-			})
-		}, owner!)
+		flush()
+		setHandle(two)
+		flush()
+		expect(keys).toEqual(["value", "two"])
+		expect(titles).toEqual(["two"])
+		dispose()
+	})
 
-		expect(fn).toHaveBeenCalledOnce()
-		expect(fn).toHaveBeenCalledWith("two")
+	it("should work with useDocHandle", () => {
+		const {repo, create} = setup()
+		const [url, setURL] = createSignal<AutomergeUrl>()
+		const [doc, dispose] = root(() =>
+			createDocumentProjection<ExampleDoc>(useDocHandle(url, {repo}))
+		)
+		expect(doc.key).toBe(undefined)
+		setURL(create({key: "found"}).url)
+		flush()
+		expect(doc.key).toBe("found")
+		dispose()
+	})
 
-		return Promise.all([arrayDotThree, projectZeroItemZeroTitle])
+	it("should suspend while the handle is loading", async () => {
+		const {repo, create} = setup()
+		const handle = create({key: "slow"})
+		const restore = slow(repo)
+		function Doc() {
+			const doc = createDocumentProjection<ExampleDoc>(
+				useDocHandle(handle.url, {repo})
+			)
+			return <h1>{doc.key}</h1>
+		}
+		const result = render(() => (
+			<Loading fallback={<p>loading</p>}>
+				<Doc />
+			</Loading>
+		))
+		expect(result.queryByText("loading")).not.toBeNull()
+		expect(await result.findByText("slow")).not.toBeNull()
+		handle.change(doc => (doc.key = "fast"))
+		await settle()
+		expect(result.queryByText("fast")).not.toBeNull()
+		restore()
+		result.unmount()
 	})
 })
-
-interface ExampleDoc {
-	key: string
-	array: number[]
-	hellos: {hello: string}[]
-	projects: {
-		title: string
-		items: {title: string; complete?: number}[]
-	}[]
-}

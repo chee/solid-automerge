@@ -1,6 +1,6 @@
 import {defineConfig} from "vitest/config"
 import wasm from "vite-plugin-wasm"
-import solid from "vite-plugin-solid"
+import solid from "@solidjs/vite-plugin"
 
 export default defineConfig({
 	test: {
@@ -9,11 +9,6 @@ export default defineConfig({
 		// instanceof checks as values cross the wasm boundary.
 		environment: "happy-dom",
 		setupFiles: ["./testSetup.ts"],
-		server: {
-			deps: {
-				inline: [/solid-js/],
-			},
-		},
 	},
 	plugins: [solid(), wasm()],
 })

@@ -1,307 +1,92 @@
-import {type PeerId, Repo, type AutomergeUrl} from "@automerge/automerge-repo"
-import {renderHook, testEffect} from "@solidjs/testing-library"
-import {describe, expect, it, vi} from "vitest"
-import {RepoContext} from "../src/context.js"
-import {createEffect, createSignal, type ParentComponent} from "solid-js"
-import useDocSignal from "../src/useDocSignal.js"
+import type {AutomergeUrl, DocHandle} from "@automerge/automerge-repo"
+import {describe, expect, it} from "vitest"
+import {createSignal, flush} from "solid-js"
+import useDocSignal from "../src/useDocSignal.ts"
+import createDocSignal from "../src/createDocSignal.ts"
+import makeDocSignal from "../src/makeDocSignal.ts"
+import {root, settle, setup, track, type ExampleDoc} from "./helpers.tsx"
 
-interface ExampleDoc {
-	key: string
-	array: number[]
-	nested: {title: string}
-}
+describe("makeDocSignal", () => {
+	it("should have the doc straight away", () => {
+		const {handle} = setup()
+		const [doc, dispose] = root(() => makeDocSignal<ExampleDoc>(handle))
+		expect(doc()).toBe(handle.doc())
+		dispose()
+	})
+
+	it("should be a new doc after every change", async () => {
+		const {handle} = setup()
+		const [[doc, keys], dispose] = root(() => {
+			const doc = makeDocSignal<ExampleDoc>(handle)
+			return [doc, track(() => doc()?.key)] as const
+		})
+		flush()
+		handle.change(doc => (doc.key = "hello world!"))
+		await settle()
+		expect(doc()).toBe(handle.doc())
+		handle.change(doc => doc.array.push(4))
+		await settle()
+		expect(doc()?.array).toEqual([1, 2, 3, 4])
+		// coarse: the effect reads doc() so it hears about every change
+		expect(keys).toEqual(["value", "hello world!", "hello world!"])
+		dispose()
+	})
+})
+
+describe("createDocSignal", () => {
+	it("should follow the handle", async () => {
+		const {create} = setup()
+		const one = create({key: "one"})
+		const two = create({key: "two"})
+		const [handle, setHandle] = createSignal<DocHandle<ExampleDoc>>()
+		const [doc, dispose] = root(() => createDocSignal<ExampleDoc>(handle))
+		expect(doc()).toBe(undefined)
+		setHandle(one)
+		flush()
+		expect(doc()?.key).toBe("one")
+		setHandle(two)
+		flush()
+		expect(doc()?.key).toBe("two")
+		one.change(doc => (doc.key = "not this one"))
+		await settle()
+		expect(doc()?.key).toBe("two")
+		setHandle(undefined)
+		flush()
+		expect(doc()).toBe(undefined)
+		dispose()
+	})
+})
 
 describe("useDocSignal", () => {
-	function setup() {
-		const repo = new Repo({
-			peerId: "bob" as PeerId,
-		})
-
-		const create = () =>
-			repo.create<ExampleDoc>({
-				key: "value",
-				array: [1, 2, 3],
-				nested: {title: "hello"},
-			})
-
-		const wrapper: ParentComponent = props => {
-			return (
-				<RepoContext.Provider value={repo}>
-					{props.children}
-				</RepoContext.Provider>
-			)
-		}
-
-		return {
-			repo,
-			wrapper,
-			create,
-			options: {repo},
-		}
-	}
-
-	it("should return the initial document value", async () => {
-		const {create, options} = setup()
-
-		await testEffect(done => {
-			const [doc] = useDocSignal<ExampleDoc>(create().url, options)
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc()?.key).toBe("value")
-					done()
-				}
-				return run + 1
-			})
-		})
+	it("should give [doc, change, handle]", async () => {
+		const {repo, handle} = setup()
+		const [[doc, change, result], dispose] = root(() =>
+			useDocSignal<ExampleDoc>(handle.url, {repo})
+		)
+		expect(doc()?.key).toBe("value")
+		expect(result()).toBe(handle)
+		change(doc => (doc.key = "changed"))
+		await settle()
+		expect(handle.doc().key).toBe("changed")
+		expect(doc()?.key).toBe("changed")
+		dispose()
 	})
 
-	it("should notify on a property change", async () => {
-		const {create, options} = setup()
-
-		await testEffect(done => {
-			const [doc, handle] = useDocSignal<ExampleDoc>(create().url, options)
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc()?.key).toBe("value")
-					handle()?.change(doc => (doc.key = "hello world!"))
-				} else if (run == 1) {
-					expect(doc()?.key).toBe("hello world!")
-					handle()?.change(doc => (doc.key = "friday night!"))
-				} else if (run == 2) {
-					expect(doc()?.key).toBe("friday night!")
-					done()
-				}
-				return run + 1
-			})
-		})
-	})
-
-	it("should return the handle as the second element", async () => {
-		const {create, options} = setup()
-		const created = create()
-
-		await testEffect(done => {
-			const [, handle] = useDocSignal<ExampleDoc>(created.url, options)
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(handle()).not.toBe(undefined)
-					expect(handle()?.url).toBe(created.url)
-					done()
-				}
-				return run + 1
-			})
-		})
-	})
-
-	it("should update when an array element changes", async () => {
-		const {create, options} = setup()
-
-		await testEffect(done => {
-			const [doc, handle] = useDocSignal<ExampleDoc>(create().url, options)
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc()?.array).toEqual([1, 2, 3])
-					handle()?.change(doc => doc.array.push(4))
-				} else if (run == 1) {
-					expect(doc()?.array).toEqual([1, 2, 3, 4])
-					done()
-				}
-				return run + 1
-			})
-		})
-	})
-
-	it("should update when a nested property changes", async () => {
-		const {create, options} = setup()
-
-		await testEffect(done => {
-			const [doc, handle] = useDocSignal<ExampleDoc>(create().url, options)
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc()?.nested.title).toBe("hello")
-					handle()?.change(doc => (doc.nested.title = "world"))
-				} else if (run == 1) {
-					expect(doc()?.nested.title).toBe("world")
-					done()
-				}
-				return run + 1
-			})
-		})
-	})
-
-	it("should work with a signal url", async () => {
-		const {create, wrapper} = setup()
+	it("should follow the url", async () => {
+		const {repo, create} = setup()
+		const one = create({key: "one"})
 		const [url, setURL] = createSignal<AutomergeUrl>()
-		const {
-			result: [doc, handle],
-			owner,
-		} = renderHook(useDocSignal<ExampleDoc>, {
-			initialProps: [url],
-			wrapper,
-		})
-
-		const done = testEffect(done => {
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc()).toBeUndefined()
-					setURL(create().url)
-				} else if (run == 1) {
-					expect(doc()?.key).toBe("value")
-					handle()?.change(doc => (doc.key = "hello world!"))
-				} else if (run == 2) {
-					expect(doc()?.key).toBe("hello world!")
-					setURL(create().url)
-				} else if (run == 3) {
-					expect(doc()?.key).toBe("value")
-					done()
-				}
-				return run + 1
-			})
-		}, owner!)
-		return done
-	})
-
-	it("should clear the signal when the url returns to nothing", async () => {
-		const {create, options} = setup()
-		const [url, setURL] = createSignal<AutomergeUrl>()
-
-		const done = testEffect(done => {
-			const [doc, handle] = useDocSignal<ExampleDoc>(url, options)
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(handle()).toBe(undefined)
-					setURL(create().url)
-				} else if (run == 1) {
-					expect(doc()?.key).toBe("value")
-					expect(handle()).not.toBe(undefined)
-					setURL(undefined)
-				} else if (run == 2) {
-					expect(handle()).toBe(undefined)
-					setURL(create().url)
-				} else if (run == 3) {
-					expect(doc()?.key).toBe("value")
-					expect(handle()).not.toBe(undefined)
-					done()
-				}
-				return run + 1
-			})
-		})
-		return done
-	})
-
-	it("should work without a context if given a repo in options", async () => {
-		const {create, repo} = setup()
-
-		await testEffect(done => {
-			const [doc] = useDocSignal<ExampleDoc>(create().url, {repo})
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc()?.key).toBe("value")
-					done()
-				}
-				return run + 1
-			})
-		})
-	})
-
-	it("should be coarse-grained: any change triggers re-read of the whole doc", async () => {
-		const {create, options} = setup()
-
-		const signalFn = vi.fn()
-
-		await testEffect(done => {
-			const [doc, handle] = useDocSignal<ExampleDoc>(create().url, options)
-			createEffect((run: number = 0) => {
-				signalFn(doc()?.key, doc()?.array)
-				if (run == 0) {
-					expect(doc()?.key).toBe("value")
-					expect(doc()?.array).toEqual([1, 2, 3])
-					// change only the array — should still trigger the signal
-					handle()?.change(doc => doc.array.push(4))
-				} else if (run == 1) {
-					// the whole doc is refreshed, so we see the array change
-					expect(doc()?.array).toEqual([1, 2, 3, 4])
-					// key remains unchanged
-					expect(doc()?.key).toBe("value")
-					// now change only the key
-					handle()?.change(doc => (doc.key = "updated"))
-				} else if (run == 2) {
-					expect(doc()?.key).toBe("updated")
-					expect(doc()?.array).toEqual([1, 2, 3, 4])
-					done()
-				}
-				return run + 1
-			})
-		})
-
-		// the signal callback should have been called 3 times (once per run)
-		expect(signalFn).toHaveBeenCalledTimes(3)
-	})
-
-	it("should work with a slow handle", async () => {
-		const {repo} = setup()
-
-		const slowHandle = repo.create({
-			key: "slow",
-			array: [],
-			nested: {title: "slow"},
-		})
-		const originalFind = repo.findWithProgress.bind(repo)
-		repo.findWithProgress = vi.fn().mockImplementation((...args) => {
-			// @ts-expect-error i'm ok i promise
-			const progress = originalFind(...args)
-			const originalWhenReady = progress.whenReady.bind(progress)
-			progress.whenReady = async (...a: unknown[]) => {
-				await new Promise(resolve => setTimeout(resolve, 100))
-				return originalWhenReady(...a)
-			}
-			return progress
-		})
-
-		const done = testEffect(done => {
-			const [doc] = useDocSignal<ExampleDoc>(() => slowHandle.url, {
-				repo,
-				"~skipInitialValue": true,
-			})
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc()?.key).toBeUndefined()
-				} else if (run == 1) {
-					expect(doc()?.key).toBe("slow")
-					done()
-				}
-				return run + 1
-			})
-		})
-		repo.findWithProgress = originalFind
-		return done
-	})
-
-	it("should not apply updates from a previous handle after url changes", async () => {
-		const {create, options} = setup()
-		const h1 = create()
-		const h2 = create()
-
-		const [url, setURL] = createSignal<AutomergeUrl>(h1.url)
-
-		const done = testEffect(done => {
-			const [doc, handle] = useDocSignal<ExampleDoc>(url, options)
-			createEffect((run: number = 0) => {
-				if (run == 0) {
-					expect(doc()?.key).toBe("value")
-					// switch to h2
-					setURL(h2.url)
-				} else if (run == 1) {
-					expect(doc()?.key).toBe("value")
-					// change h2
-					handle()?.change(doc => (doc.key = "from h2"))
-				} else if (run == 2) {
-					expect(doc()?.key).toBe("from h2")
-					done()
-				}
-				return run + 1
-			})
-		})
-		return done
+		const [[doc, change], dispose] = root(() =>
+			useDocSignal<ExampleDoc>(url, {repo})
+		)
+		expect(doc()).toBe(undefined)
+		expect(() => change(doc => (doc.key = "nowhere"))).not.toThrow()
+		setURL(one.url)
+		flush()
+		expect(doc()?.key).toBe("one")
+		change(doc => (doc.key = "one changed"))
+		await settle()
+		expect(doc()?.key).toBe("one changed")
+		dispose()
 	})
 })

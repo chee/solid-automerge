@@ -2,18 +2,17 @@ import {Repo} from "@automerge/automerge-repo"
 import {render} from "@solidjs/testing-library"
 import {describe, expect, test, vi} from "vitest"
 import type {ParentComponent} from "solid-js"
-import useRepo from "../src/useRepo.js"
-import {RepoContext} from "../src/context.js"
+import useRepo from "../src/useRepo.ts"
+import {RepoContext} from "../src/context.ts"
 
 describe("useRepo", () => {
-	const Component = ({onRepo}: {onRepo: (repo: Repo) => void}) => {
-		const repo = useRepo()
-		onRepo(repo)
+	function Component(props: {onRepo: (repo: Repo) => void}) {
+		props.onRepo(useRepo())
 		return null
 	}
 
 	test("should error when context unavailable", () => {
-		// Prevent console spam by swallowing console.error "uncaught error" message
+		// swallow the console.error "uncaught error" message
 		const spy = vi.spyOn(console, "error")
 		spy.mockImplementation(() => {})
 		expect(() => render(() => <Component onRepo={() => {}} />)).toThrow(
@@ -25,7 +24,7 @@ describe("useRepo", () => {
 	test("should return repo from context", () => {
 		const repo = new Repo()
 		const wrapper: ParentComponent = props => (
-			<RepoContext.Provider value={repo}>{props.children}</RepoContext.Provider>
+			<RepoContext value={repo}>{props.children}</RepoContext>
 		)
 		const onRepo = vi.fn()
 		render(() => <Component onRepo={onRepo} />, {wrapper})
