@@ -1,8 +1,8 @@
-import type {AnyDocumentId} from "@automerge/automerge-repo/slim"
+import type {AnyDocumentId, DocHandle} from "@automerge/automerge-repo/slim"
+import type {Accessor} from "solid-js"
 import type {MaybeAccessor} from "./access.ts"
 import useDocument from "./useDocument.ts"
 import mutable from "./mutable.ts"
-import type {LiveHandle} from "./live.ts"
 import type {UseDocumentOptions} from "./types.ts"
 
 /**
@@ -26,7 +26,7 @@ import type {UseDocumentOptions} from "./types.ts"
 export default function useMutableDocument<T extends object>(
 	id: MaybeAccessor<AnyDocumentId | undefined>,
 	options?: UseDocumentOptions
-): [doc: T, handle: LiveHandle<T>] {
+): [doc: T, handle: Accessor<DocHandle<T> | undefined>] {
 	const [doc, handle] = useDocument<T>(id, options)
 	return [mutable(doc as T), handle]
 }
