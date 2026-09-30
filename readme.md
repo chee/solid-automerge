@@ -22,14 +22,14 @@ Returns `[doc, handle]`.
 useDocument<T>(
 	url: AutomergeUrl | (() => AutomergeUrl | undefined),
 	options?: {repo?: Repo}
-): [doc: Doc<T>, handle: Accessor<DocHandle<T> | undefined>]
+): [doc: Doc<T>, handle: LiveHandle<T>]
 ```
 
 ```tsx
 // example
 const [doc, handle] = useDocument<{count: number}>(() => props.url)
 
-const inc = () => handle()?.change(doc => doc.count++)
+const inc = () => handle.change(doc => doc.count++)
 return <button onClick={inc}>{doc.count}</button>
 ```
 
@@ -45,7 +45,11 @@ time.
 - while the document is loading, reading `doc` suspends. put a `<Loading>`
   around it
 - if the document can't be found, reading it errors to the nearest `<Errored>`
-- when there's no url, `doc` is empty and `handle()` is `undefined`
+- when there's no url, `doc` is empty
+
+`handle` is a [live handle](#usedochandle): use it like the document's
+`DocHandle` (`handle.change(...)`, `handle.url`), or call it to get the
+`DocHandle` itself.
 
 The `{repo}` option can be left out if you are using [RepoContext](#context).
 
@@ -69,7 +73,7 @@ return (
 Assignment, `delete`, `push`, `pop`, `shift`, `unshift`, `splice`, `fill`, and
 automerge's own `insertAt` and `deleteAt` all work, anywhere in the document.
 Each one is its own change: to make several edits in one change, use
-`handle()?.change`. Automerge lists can't `sort`, `reverse` or `copyWithin`, so
+`handle.change`. Automerge lists can't `sort`, `reverse` or `copyWithin`, so
 those throw.
 
 Nested objects are views of whatever is at their path right now, so
@@ -198,14 +202,14 @@ and not _how_. Returns `[doc, handle]`.
 useDocSignal<T>(
 	url: AutomergeUrl | (() => AutomergeUrl | undefined),
 	options?: {repo: Repo}
-): [doc: Accessor<Doc<T> | undefined>, handle: Accessor<DocHandle<T> | undefined>]
+): [doc: Accessor<Doc<T> | undefined>, handle: LiveHandle<T>]
 ```
 
 ```tsx
 // example
 const [doc, handle] = useDocSignal<{count: number}>(() => props.url)
 
-const inc = () => handle()?.change(doc => doc.count++)
+const inc = () => handle.change(doc => doc.count++)
 return <button onClick={inc}>{doc()?.count}</button>
 ```
 
@@ -245,7 +249,7 @@ return <span>{doc()?.count}</span>
 ## useDocHandle
 
 Get a [DocHandle](https://automerge.org/docs/repositories/dochandles/) from the
-repo as an async memo.
+repo as a live handle.
 
 Perfect for handing to `createDocumentProjection`.
 
@@ -253,7 +257,7 @@ Perfect for handing to `createDocumentProjection`.
 useDocHandle<T>(
 	url: AnyDocumentId | (() => AnyDocumentId | undefined),
 	options?: {repo: Repo}
-): Accessor<DocHandle<T> | undefined>
+): LiveHandle<T>
 ```
 
 ```tsx
@@ -262,10 +266,29 @@ const handle = useDocHandle(() => props.url, {repo})
 const handle = useDocHandle(() => props.url)
 ```
 
-When the repo already has the document you get the handle straight away.
-Otherwise the memo is pending until it's found (reading it suspends to the
-nearest `<Loading>`), or errors (to the nearest `<Errored>`) if it can't be.
-It's `undefined` when there's no url.
+A live handle is the handle for whatever the url is now. Use it like a
+`DocHandle`, or call it to get the `DocHandle` itself:
+
+```ts
+handle.change(doc => doc.count++) // same as handle()?.change(...)
+handle.url // same as handle()?.url
+handle() // the DocHandle, or undefined
+```
+
+- reading it in a computation tracks it, so `<p>{handle.url}</p>` follows the
+  url
+- methods act on whichever handle is current when they're called (even ones
+  you took off it, like `const {change} = handle`), and do nothing when there
+  isn't one
+- when the repo already has the document you get the handle straight away.
+  otherwise it's pending until it's found (reading it suspends to the nearest
+  `<Loading>`, while methods called from outside a computation do nothing), or
+  errors (to the nearest `<Errored>`) if it can't be
+- it's `undefined` when there's no url
+
+Because it's a function, anything that takes an accessor of a handle takes a
+live handle (`createDocumentProjection`, `createDocSignal`, `mount`). Anything
+that needs a real `DocHandle` needs `handle()`.
 
 The `repo` option can be left out if you are using [RepoContext](#context).
 
@@ -312,7 +335,9 @@ const repo = useRepo()
 
 - document projections are stores now, not accessors: `doc()?.title` becomes
   `doc.title`
-- `useDocHandle` returns a memo instead of a resource. put a `<Loading>` where
-  you had a `<Suspense>`, and read `handle()` where you read `handle.latest`
+- `useDocHandle` returns a live handle instead of a resource. put a `<Loading>`
+  where you had a `<Suspense>`, and read `handle()` where you read
+  `handle.latest`. `handle()?.change(...)` still works, and so does
+  `handle.change(...)`
 - `createDocumentProjection` returns the store itself, not an accessor of one
 - `<RepoContext.Provider value={repo}>` is `<RepoContext value={repo}>`

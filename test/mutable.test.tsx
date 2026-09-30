@@ -194,7 +194,7 @@ describe("useMutableDocument", () => {
 		)
 		expect(result()).toBe(handle)
 		doc.key = "mutated"
-		result()?.change(doc => doc.array.push(4))
+		result.change(doc => doc.array.push(4))
 		flush()
 		expect(handle.doc().key).toBe("mutated")
 		expect(snapshot(doc.array)).toEqual([1, 2, 3, 4])

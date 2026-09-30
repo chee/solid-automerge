@@ -23,10 +23,10 @@ describe("useDocument", () => {
 			return [result, track(() => result[0].key)] as const
 		})
 		flush()
-		result()?.change(doc => (doc.key = "hello world!"))
+		result.change(doc => (doc.key = "hello world!"))
 		flush()
 		expect(doc.key).toBe("hello world!")
-		result()?.change(doc => doc.array.push(4))
+		result.change(doc => doc.array.push(4))
 		flush()
 		expect(snapshot(doc.array)).toEqual([1, 2, 3, 4])
 		expect(keys).toEqual(["value", "hello world!"])
@@ -56,7 +56,7 @@ describe("useDocument", () => {
 		flush()
 		expect(doc.key).toBe("two")
 		expect(handle()).toBe(two)
-		handle()?.change(doc => (doc.key = "two changed"))
+		handle.change(doc => (doc.key = "two changed"))
 		one.change(doc => (doc.key = "one changed"))
 		flush()
 		expect(doc.key).toBe("two changed")
@@ -90,8 +90,7 @@ describe("useDocument", () => {
 		}
 		function Todos(props: {url: AutomergeUrl}) {
 			const [doc, handle] = useDocument<ExampleDoc>(() => props.url)
-			const add = () =>
-				handle()?.change(doc => doc.hellos.unshift({hello: "hi"}))
+			const add = () => handle.change(doc => doc.hellos.unshift({hello: "hi"}))
 			return (
 				<>
 					<h1>{doc.key}</h1>

@@ -1,6 +1,7 @@
 // types are imported and then exported, rather than re-exported, so the
 // built .d.ts files point at .js files
 import type {MaybeAccessor} from "./access.ts"
+import type {LiveHandle} from "./live.ts"
 import type {
 	DocumentProjectionOptions,
 	HandleFor,
@@ -22,6 +23,7 @@ export {default as autoproduce} from "./autoproduce.ts"
 export {default as useRepo} from "./useRepo.ts"
 export {RepoContext} from "./context.ts"
 export type {
+	LiveHandle,
 	MaybeAccessor,
 	DocumentProjectionOptions,
 	HandleFor,

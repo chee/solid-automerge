@@ -1,12 +1,9 @@
-import type {
-	AnyDocumentId,
-	Doc,
-	DocHandle,
-} from "@automerge/automerge-repo/slim"
+import type {AnyDocumentId, Doc} from "@automerge/automerge-repo/slim"
 import type {Accessor} from "solid-js"
 import type {MaybeAccessor} from "./access.ts"
 import useDocHandle from "./useDocHandle.ts"
 import createDocSignal from "./createDocSignal.ts"
+import type {LiveHandle} from "./live.ts"
 import type {UseDocHandleOptions} from "./types.ts"
 
 /**
@@ -17,10 +14,7 @@ import type {UseDocHandleOptions} from "./types.ts"
 export default function useDocSignal<T>(
 	id: MaybeAccessor<AnyDocumentId | undefined>,
 	options?: UseDocHandleOptions
-): [
-	doc: Accessor<Doc<T> | undefined>,
-	handle: Accessor<DocHandle<T> | undefined>,
-] {
+): [doc: Accessor<Doc<T> | undefined>, handle: LiveHandle<T>] {
 	const handle = useDocHandle<T>(id, options)
 	return [createDocSignal<T>(handle), handle]
 }

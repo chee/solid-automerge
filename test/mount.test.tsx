@@ -6,6 +6,7 @@ import mutable from "../src/mutable.ts"
 import makeDocumentProjection from "../src/makeDocumentProjection.ts"
 import createDocumentProjection from "../src/createDocumentProjection.ts"
 import useDocument from "../src/useDocument.ts"
+import useDocHandle from "../src/useDocHandle.ts"
 import {root, settle, setup, track, type ExampleDoc} from "./helpers.tsx"
 
 interface Child {
@@ -142,6 +143,23 @@ describe("mount", () => {
 		})
 		await settle()
 		expect(doc.child?.name).toBe("child")
+		dispose()
+	})
+
+	it("should mount a live handle, and follow it", () => {
+		const {repo, parent, child} = setupMount()
+		const other = repo.create<Child>({name: "other", tags: []})
+		const [url, setURL] = createSignal(child.url)
+		const [doc, dispose] = root(() => {
+			const doc = makeDocumentProjection<Parent>(parent as DocHandle<Parent>)
+			mount(doc, "child", useDocHandle<Child>(url, {repo}))
+			return doc
+		})
+		flush()
+		expect(doc.child?.name).toBe("child")
+		setURL(other.url)
+		flush()
+		expect(doc.child?.name).toBe("other")
 		dispose()
 	})
 
