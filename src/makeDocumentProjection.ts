@@ -38,7 +38,7 @@ export default function makeDocumentProjection<T extends object>(
 		return item.store as Doc<T>
 	}
 
-	const [doc, set] = createStore<Doc<T>>(handle.doc()!)
+	const [doc, set] = createStore<Doc<T>>(structuredClone(handle.doc()!))
 
 	cache.set(handle, {
 		refs: 0,
@@ -74,7 +74,7 @@ export default function makeDocumentProjection<T extends object>(
 	handle.on("delete", ondelete)
 
 	handle.whenReady().then(() => {
-		set(handle.doc()!)
+		set(structuredClone(handle.doc()!))
 	})
 
 	return doc
