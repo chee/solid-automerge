@@ -246,16 +246,11 @@ describe("useDocSignal", () => {
 			array: [],
 			nested: {title: "slow"},
 		})
-		const originalFind = repo.findWithProgress.bind(repo)
-		repo.findWithProgress = vi.fn().mockImplementation((...args) => {
+		const originalFind = repo.find.bind(repo)
+		repo.find = vi.fn().mockImplementation(async (...args) => {
+			await new Promise(resolve => setTimeout(resolve, 100))
 			// @ts-expect-error i'm ok i promise
-			const progress = originalFind(...args)
-			const originalWhenReady = progress.whenReady.bind(progress)
-			progress.whenReady = async (...a: unknown[]) => {
-				await new Promise(resolve => setTimeout(resolve, 100))
-				return originalWhenReady(...a)
-			}
-			return progress
+			return originalFind(...args)
 		})
 
 		const done = testEffect(done => {
@@ -273,7 +268,7 @@ describe("useDocSignal", () => {
 				return run + 1
 			})
 		})
-		repo.findWithProgress = originalFind
+		repo.find = originalFind
 		return done
 	})
 

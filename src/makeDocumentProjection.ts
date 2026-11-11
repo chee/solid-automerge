@@ -73,9 +73,5 @@ export default function makeDocumentProjection<T extends object>(
 	handle.on("change", patch)
 	handle.on("delete", ondelete)
 
-	handle.whenReady().then(() => {
-		set(structuredClone(handle.doc()!))
-	})
-
 	return doc
 }
