@@ -12,8 +12,8 @@ importers:
         specifier: ^6.4.0
         version: 6.4.0(solid-js@1.9.13)
       cabbages:
-        specifier: ^0.2.10
-        version: 0.2.10
+        specifier: ^0.2.11
+        version: 0.2.11
     devDependencies:
       '@automerge/automerge':
         specifier: 3.3.0-fragments.1
@@ -1113,8 +1113,8 @@ packages:
     resolution: {integrity: sha512-nEh+kZOPY1w+gcCMobZ6ETUp9WfibndnosbpwB1iJk/8Gt5ZF2bhS6+B6bPYz424KtwsR6Rflc3tCz1/ghX2dQ==}
     engines: {node: '>=4.0'}
 
-  cabbages@0.2.10:
-    resolution: {integrity: sha512-8wiugEP2u9kYCxK978Opc1UbAx1WcEGxVscGwW6IT4A4e2MeT90i5M67A2RGloeK1Fhact13QGHHcsdiFSSnSQ==}
+  cabbages@0.2.11:
+    resolution: {integrity: sha512-yJWxcg9q4wZ1szzqqcehTetCLcy36nt0Zo9xmcfEd62bxgtot1y9Go8GpR87lh5VEmCmvk7iu3S0VYXiJ5RZOQ==}
 
   callsites@3.1.0:
     resolution: {integrity: sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==}
@@ -3068,7 +3068,7 @@ snapshots:
     dependencies:
       '@types/node': 26.0.0
 
-  cabbages@0.2.10:
+  cabbages@0.2.11:
     dependencies:
       debug: 4.4.3
     transitivePeerDependencies:
