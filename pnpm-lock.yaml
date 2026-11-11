@@ -21,6 +21,9 @@ importers:
       '@automerge/automerge-repo':
         specifier: ^2.6.0-subduction.34
         version: 2.6.0-subduction.34
+      '@automerge/automerge-repo-v3':
+        specifier: npm:@automerge/automerge-repo@3.0.0-alpha.1
+        version: '@automerge/automerge-repo@3.0.0-alpha.1'
       '@onyx/esbuild-plugin-rewrite-relative-import-extensions':
         specifier: npm:@jsr/onyx__esbuild-plugin-rewrite-relative-import-extensions@^0.0.2
         version: '@jsr/onyx__esbuild-plugin-rewrite-relative-import-extensions@0.0.2'
@@ -110,11 +113,18 @@ packages:
     resolution: {integrity: sha512-haobq94PQ1Z74DsXMfMFfWAowR6cdoTAjfUAqJQQIevzuOVn2oioTctPp7t0FvVsdGHR5L3Im107L57WYOtJCA==}
     engines: {node: '>=22.13'}
 
+  '@automerge/automerge-repo@3.0.0-alpha.1':
+    resolution: {integrity: sha512-06MvcFbc2wHqQZ2GenLI3ezSilSxF9tF+3IRE+Kbchp/oe1e4X4NFgQ4nW4mm+MIAZJ7db/wOebyVm+E2H3mEA==}
+    engines: {node: '>=22.13'}
+
   '@automerge/automerge-subduction@0.16.0':
     resolution: {integrity: sha512-BOOn/4p8cF4LhjDUQdgM3qyZFya+M7ZuZywuC99x/kbhk4UK7dw/QcsifcHG5E1TAW4R/K17ZGFUC5nCVUSSWg==}
 
   '@automerge/automerge@3.3.0-fragments.1':
     resolution: {integrity: sha512-Im2n3qcYSuIsLDSjofTRo7CZyyvFn5pKLSCCO5sjWzESw+9q9G25ZIrL2mczDX43cXtyzi+w/4b9VUaiNdY56Q==}
+
+  '@automerge/automerge@3.5.0':
+    resolution: {integrity: sha512-ejbqJWfXWM2QbTcUK/5ugYiQiyOP7LYVAp/RuSvthCc07oek0FClMxEuouuhjrLjVPDSI34RP1ftGc45PF7WRA==}
 
   '@babel/code-frame@7.26.2':
     resolution: {integrity: sha512-RJlIHRueQgwWitWgF8OdFYGZX328Ax5BCemNGlqHfplnRT9ESi8JkFlvaVYbS+UubVY6dpv87Fs2u5M29iNFVQ==}
@@ -2154,9 +2164,21 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  '@automerge/automerge-repo@3.0.0-alpha.1':
+    dependencies:
+      '@automerge/automerge': 3.5.0
+      bs58check: 4.0.0
+      cbor-x: 1.6.4
+      debug: 4.4.3
+      eventemitter3: 5.0.4
+    transitivePeerDependencies:
+      - supports-color
+
   '@automerge/automerge-subduction@0.16.0': {}
 
   '@automerge/automerge@3.3.0-fragments.1': {}
+
+  '@automerge/automerge@3.5.0': {}
 
   '@babel/code-frame@7.26.2':
     dependencies:
