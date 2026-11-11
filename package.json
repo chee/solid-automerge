@@ -1,6 +1,6 @@
 {
 	"name": "solid-automerge",
-	"version": "2.0.2",
+	"version": "2.1.0",
 	"description": "use automerge-repo in your solid app",
 	"type": "module",
 	"main": "out/index.js",
