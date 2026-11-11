@@ -55,18 +55,22 @@ export default function useDocHandle<T>(
 // automerge-repo@3 replaces `findWithProgress` (deprecated) with `query`,
 // whose `state()` reports `status` rather than `state`. Prefer `query` when
 // it exists so this works against both @2 and @3 without deprecation noise.
-type QueryableRepo = Repo & {
+interface QueryableRepo {
 	query<T>(url: AutomergeUrl): {
 		state(): {status: string; handle?: DocHandle<T>}
 	}
+}
+
+function isQueryable(repo: unknown): repo is QueryableRepo {
+	return typeof (repo as Partial<QueryableRepo>).query == "function"
 }
 
 function peekReadyHandle<T>(
 	repo: Repo,
 	url: AutomergeUrl
 ): DocHandle<T> | undefined {
-	if (typeof (repo as Partial<QueryableRepo>).query == "function") {
-		const state = (repo as QueryableRepo).query<T>(url).state()
+	if (isQueryable(repo)) {
+		const state = repo.query<T>(url).state()
 		return state.status == "ready" ? state.handle : undefined
 	}
 	const state = repo.findWithProgress<T>(url).peek()
