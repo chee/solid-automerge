@@ -320,3 +320,25 @@ const repo = useRepo()
   you had a `<Suspense>`, and read `handle()` where you read `handle.latest`
 - `createDocumentProjection` returns the store itself, not an accessor of one
 - `<RepoContext.Provider value={repo}>` is `<RepoContext value={repo}>`
+
+there's a codemod that does most of that for you. upgrade Solid to 2.0 first,
+then:
+
+```sh
+npx jscodeshift -t node_modules/solid-automerge/codemod/3.0.ts src
+```
+
+it rewrites `doc()?.title` to `doc.title`, `handle.latest` to `handle()` and
+`RepoContext.Provider` to `RepoContext`, for everything imported from
+`solid-automerge`. where the meaning changed in a way it can't fix (a
+document that was `undefined` while loading now suspends, a resource's
+`.loading`), it leaves a `// TODO(solid-automerge@3):` comment. run your
+formatter afterwards.
+
+## for LLMs
+
+[`skills/solid-automerge/SKILL.md`](skills/solid-automerge/SKILL.md) is an
+agent skill covering the 3.x API, the mistakes agents make with it, and
+upgrading from 2.x. it ships in the package, so point your agent at
+`node_modules/solid-automerge/skills/solid-automerge/SKILL.md`, or copy it
+into your skills directory (`.claude/skills/` for Claude Code).

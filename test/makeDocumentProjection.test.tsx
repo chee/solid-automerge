@@ -369,7 +369,6 @@ function createFakeDocument<T extends object>(initial: T) {
 		handle,
 		change,
 		doc: () => current,
-		listenerCount: () =>
-			[...listeners].filter(l => l.event == "change").length,
+		listenerCount: () => [...listeners].filter(l => l.event == "change").length,
 	}
 }

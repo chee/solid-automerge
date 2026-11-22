@@ -83,9 +83,7 @@ describe("automerge-repo@3", () => {
 		it("updates the handle when the url changes", async () => {
 			const {repo, handle, create} = await setup()
 			const other = await create({...initial(), key: "other"})
-			const [url, setUrl] = createSignal<AutomergeUrl | undefined>(
-				handle.url
-			)
+			const [url, setUrl] = createSignal<AutomergeUrl | undefined>(handle.url)
 
 			const [result, dispose] = root(() =>
 				useDocHandle<ExampleDoc>(url, {repo})
