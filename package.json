@@ -35,10 +35,11 @@
 	"devDependencies": {
 		"@automerge/automerge": "3.3.0-fragments.1",
 		"@automerge/automerge-repo": "^2.6.0-subduction.34",
+		"@automerge/automerge-repo-v3": "npm:@automerge/automerge-repo@3.0.0-alpha.1",
 		"@onyx/esbuild-plugin-rewrite-relative-import-extensions": "npm:@jsr/onyx__esbuild-plugin-rewrite-relative-import-extensions@^0.0.2",
-		"@solidjs/testing-library": "^1.0.0-beta.3",
-		"@solidjs/vite-plugin": "^3.0.0-next.46",
-		"@solidjs/web": "^2.0.0-rc.11",
+		"@solidjs/testing-library": "^1.0.0-rc.2",
+		"@solidjs/vite-plugin": "^3.0.1",
+		"@solidjs/web": "^2.0.3",
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/user-event": "^14.6.1",
 		"esbuild": "^0.28.1",
@@ -48,7 +49,7 @@
 		"globals": "^17.7.0",
 		"happy-dom": "^20.10.6",
 		"prettier": "^3.8.4",
-		"solid-js": "^2.0.0-rc.11",
+		"solid-js": "^2.0.3",
 		"typedoc": "^0.28.19",
 		"typedoc-material-theme": "^1.4.1",
 		"typescript": "^6.0.3",
@@ -59,10 +60,10 @@
 	},
 	"peerDependencies": {
 		"@automerge/automerge-repo": "^2.6.0-subduction.34",
-		"solid-js": "^2.0.0-rc.11"
+		"solid-js": "^2.0.3"
 	},
 	"dependencies": {
-		"cabbages": "^0.2.10"
+		"cabbages": "^0.2.11"
 	},
 	"repository": {
 		"type": "git",

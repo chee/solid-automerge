@@ -39,7 +39,10 @@ const views = new WeakMap<object, {root: Root; path: Path}>()
  * now, so `todo.tags` always means the current `tags`. writes under a key with
  * a document {@link mount mounted} on it go to the mounted document.
  *
- * automerge lists can't `sort`, `reverse` or `copyWithin`, so those throw.
+ * `sort`, `reverse` and `copyWithin` throw. automerge has no way to move an
+ * item in a list, so they would have to delete every item and insert it again,
+ * which turns nested objects into copies and merges badly with anyone else
+ * editing the list. `splice` it into its new order yourself if you mean it.
  */
 export default function mutable<T extends object>(doc: T): T {
 	if (views.has(doc)) return doc
@@ -256,7 +259,8 @@ type ListMethod = (
 function unsupported(method: string): ListMethod {
 	return () => () => {
 		throw new TypeError(
-			`automerge lists can't ${method}. use handle.change instead`
+			`${method} would delete and re-insert every item in an automerge list ` +
+				`(it has no move). splice the list into its new order if you mean it`
 		)
 	}
 }

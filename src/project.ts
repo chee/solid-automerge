@@ -33,7 +33,9 @@ export function project<T extends object>(
 				T | undefined
 			>
 		},
-		seed,
+		// solid wants a seed that isn't a function (NoFn<T>), which typescript
+		// can't see for a generic T. it's always a plain object or array
+		seed as Parameters<typeof createProjection<T>>[1],
 		{
 			name: options?.name,
 			key: options?.key,

@@ -8,7 +8,7 @@ src=.assets/automerge.png width=22 height=22>Automerge</a> .
 this is 3.x, for Solid 2.0. for Solid 1.x, use `solid-automerge@2`.
 
 ```sh
-pnpm add solid-js@next @automerge/automerge-repo solid-automerge
+pnpm add solid-js @automerge/automerge-repo solid-automerge
 ```
 
 ## useDocument ✨
@@ -69,8 +69,12 @@ return (
 Assignment, `delete`, `push`, `pop`, `shift`, `unshift`, `splice`, `fill`, and
 automerge's own `insertAt` and `deleteAt` all work, anywhere in the document.
 Each one is its own change: to make several edits in one change, use
-`handle()?.change`. Automerge lists can't `sort`, `reverse` or `copyWithin`, so
-those throw.
+`handle()?.change`.
+
+`sort`, `reverse` and `copyWithin` throw. Automerge has no way to move an item
+in a list, so they would have to delete every item and insert it again, which
+turns nested objects into copies and merges badly with anyone else editing the
+list. If you really want that, `splice` the list into its new order yourself.
 
 Nested objects are views of whatever is at their path right now, so
 `todo.tags` always means the current `tags` array.

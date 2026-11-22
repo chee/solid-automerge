@@ -60,23 +60,28 @@ export async function settle(ms = 0) {
 }
 
 /**
- * make `repo` slow to find documents: they're loading for `ms`, then ready.
- * returns a function that puts it back
+ * make `repo` slow to find documents: they're loading for `ms`, then ready
+ * (or `error`). returns a function that puts it back
  */
 export function slow(repo: Repo, ms = 20, error?: Error) {
-	const original = repo.findWithProgress
-	repo.findWithProgress = (<T,>(id: AnyDocumentId) => {
-		const progress = original.call(repo, id)
-		return {
-			peek: () => ({state: "loading", sources: {}}),
-			async whenReady() {
-				await new Promise(resolve => setTimeout(resolve, ms))
-				if (error) throw error
-				return progress.whenReady() as Promise<DocHandle<T>>
+	const {find, findWithProgress} = repo
+	// only peek is faked: find uses the rest of the progress object, which
+	// has private fields, so its methods are bound to the real one
+	repo.findWithProgress = (<T,>(id: AnyDocumentId) =>
+		new Proxy(findWithProgress.call(repo, id), {
+			get(target, key) {
+				if (key == "peek") return () => ({state: "loading", sources: {}})
+				const value = Reflect.get(target, key)
+				return typeof value == "function" ? value.bind(target) : value
 			},
-		}
-	}) as typeof repo.findWithProgress
+		})) as typeof repo.findWithProgress
+	repo.find = (async <T,>(id: AnyDocumentId) => {
+		await new Promise(resolve => setTimeout(resolve, ms))
+		if (error) throw error
+		return find.call(repo, id) as Promise<DocHandle<T>>
+	}) as typeof repo.find
 	return () => {
-		repo.findWithProgress = original
+		repo.find = find
+		repo.findWithProgress = findWithProgress
 	}
 }
